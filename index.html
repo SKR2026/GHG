@@ -6,7 +6,7 @@
 <title>CARBONOPS — GHG Emission Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -15,99 +15,100 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
-    --mono:'JetBrains Mono', ui-monospace, monospace;
-    --sans:'Manrope', system-ui, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --sans:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --display:'Space Grotesk', 'Inter', system-ui, sans-serif;
   }
   /* ============ THEMES ============ */
-  /* Midnight (default) — dark slate, cyan/amber/blue */
+  /* Midnight — elevated dark with vivid teal/blue/amber */
   :root, [data-theme="midnight"]{
-    --bg-0:#0a0e14; --bg-1:#0f141c; --bg-2:#161d28; --bg-3:#1e2733;
-    --line:#243140; --line-2:#2d3a4d;
-    --ink-0:#e6edf3; --ink-1:#a8b3c1; --ink-2:#6b7785; --ink-3:#4a5462;
-    --accent:#00d4aa; --accent-ink:#06231d;
-    --accent-2:#ffb547; --accent-2-ink:#1a1109;
-    --accent-3:#5eb1ff;
-    --danger:#ff5a5f;
-    --scope-1:#ff7849; --scope-2:#5eb1ff; --scope-3:#00d4aa;
-    --accent-tint:rgba(0,212,170,0.12);
-    --accent-tint-strong:rgba(0,212,170,0.18);
-    --scope1-tint:rgba(255,120,73,0.12);
-    --scope2-tint:rgba(94,177,255,0.12);
+    --bg-0:#0e1420; --bg-1:#161e2d; --bg-2:#1f2939; --bg-3:#2a3548;
+    --line:#33425a; --line-2:#445573;
+    --ink-0:#f5f9ff; --ink-1:#c4cfde; --ink-2:#8593a8; --ink-3:#5a6779;
+    --accent:#22e3b1; --accent-ink:#062018;
+    --accent-2:#ffc857; --accent-2-ink:#1a1003;
+    --accent-3:#6ec1ff;
+    --danger:#ff6b73;
+    --scope-1:#ff8a5b; --scope-2:#6ec1ff; --scope-3:#22e3b1;
+    --accent-tint:rgba(34,227,177,0.14);
+    --accent-tint-strong:rgba(34,227,177,0.22);
+    --scope1-tint:rgba(255,138,91,0.14);
+    --scope2-tint:rgba(110,193,255,0.14);
   }
-  /* Carbon — near-black, emerald/lime — eco utility */
+  /* Carbon — clean dark, brighter emerald/lime/cyan */
   [data-theme="carbon"]{
-    --bg-0:#050709; --bg-1:#0a0d11; --bg-2:#11161c; --bg-3:#1a2129;
-    --line:#202832; --line-2:#2a3441;
-    --ink-0:#eef2f6; --ink-1:#a3afbd; --ink-2:#6a7684; --ink-3:#454f5c;
-    --accent:#34d399; --accent-ink:#04231a;
-    --accent-2:#a3e635; --accent-2-ink:#161f08;
-    --accent-3:#22d3ee;
-    --danger:#f87171;
-    --scope-1:#fb923c; --scope-2:#22d3ee; --scope-3:#34d399;
-    --accent-tint:rgba(52,211,153,0.14);
-    --accent-tint-strong:rgba(52,211,153,0.22);
-    --scope1-tint:rgba(251,146,60,0.14);
-    --scope2-tint:rgba(34,211,238,0.14);
+    --bg-0:#0b0f14; --bg-1:#131820; --bg-2:#1b2230; --bg-3:#262e3d;
+    --line:#2f3a4e; --line-2:#3f4d65;
+    --ink-0:#f1f6fb; --ink-1:#bcc7d5; --ink-2:#7d8a9d; --ink-3:#525e72;
+    --accent:#4ee0a8; --accent-ink:#04231a;
+    --accent-2:#bfff5a; --accent-2-ink:#0f1a04;
+    --accent-3:#3ddef2;
+    --danger:#ff7e7e;
+    --scope-1:#ffa15a; --scope-2:#3ddef2; --scope-3:#4ee0a8;
+    --accent-tint:rgba(78,224,168,0.16);
+    --accent-tint-strong:rgba(78,224,168,0.26);
+    --scope1-tint:rgba(255,161,90,0.14);
+    --scope2-tint:rgba(61,222,242,0.14);
   }
-  /* Forest — deep green, sage/gold */
+  /* Forest — deeper green with bright sage/gold */
   [data-theme="forest"]{
-    --bg-0:#0c1410; --bg-1:#111c17; --bg-2:#172620; --bg-3:#1f3329;
-    --line:#264237; --line-2:#325245;
-    --ink-0:#e8f0ea; --ink-1:#aac0b1; --ink-2:#74897c; --ink-3:#4c5d55;
-    --accent:#7dd3a8; --accent-ink:#0e2418;
-    --accent-2:#e6b800; --accent-2-ink:#1f1700;
-    --accent-3:#86c5d8;
-    --danger:#e87b6b;
-    --scope-1:#d49856; --scope-2:#86c5d8; --scope-3:#7dd3a8;
-    --accent-tint:rgba(125,211,168,0.14);
-    --accent-tint-strong:rgba(125,211,168,0.22);
-    --scope1-tint:rgba(212,152,86,0.14);
-    --scope2-tint:rgba(134,197,216,0.14);
+    --bg-0:#0f1c17; --bg-1:#172821; --bg-2:#21372d; --bg-3:#2e4838;
+    --line:#3a5b48; --line-2:#4b7058;
+    --ink-0:#f0f6f1; --ink-1:#bcd0c2; --ink-2:#82998a; --ink-3:#566860;
+    --accent:#8ee5b8; --accent-ink:#0e2418;
+    --accent-2:#ffd54a; --accent-2-ink:#2a1f00;
+    --accent-3:#9ad6e8;
+    --danger:#f59488;
+    --scope-1:#e6a86b; --scope-2:#9ad6e8; --scope-3:#8ee5b8;
+    --accent-tint:rgba(142,229,184,0.16);
+    --accent-tint-strong:rgba(142,229,184,0.26);
+    --scope1-tint:rgba(230,168,107,0.14);
+    --scope2-tint:rgba(154,214,232,0.14);
   }
-  /* Aurora — deep navy, violet/pink/teal — vivid */
+  /* Aurora — navy with luminous violet/pink/teal */
   [data-theme="aurora"]{
-    --bg-0:#0b0d1c; --bg-1:#101327; --bg-2:#181c36; --bg-3:#222748;
-    --line:#2e3358; --line-2:#3c4270;
-    --ink-0:#ecedfb; --ink-1:#aeb1d6; --ink-2:#7378a3; --ink-3:#4d5276;
-    --accent:#a78bfa; --accent-ink:#1a1033;
-    --accent-2:#f472b6; --accent-2-ink:#330a1f;
-    --accent-3:#2dd4bf;
-    --danger:#fb7185;
-    --scope-1:#fb7185; --scope-2:#2dd4bf; --scope-3:#a78bfa;
-    --accent-tint:rgba(167,139,250,0.16);
-    --accent-tint-strong:rgba(167,139,250,0.25);
-    --scope1-tint:rgba(251,113,133,0.14);
-    --scope2-tint:rgba(45,212,191,0.14);
+    --bg-0:#0e1126; --bg-1:#171b35; --bg-2:#212547; --bg-3:#2d3260;
+    --line:#3a4080; --line-2:#4d549c;
+    --ink-0:#f3f4ff; --ink-1:#c2c5e8; --ink-2:#8b8fb9; --ink-3:#5e6388;
+    --accent:#c4a8ff; --accent-ink:#1f1042;
+    --accent-2:#ff8ec9; --accent-2-ink:#3d0d24;
+    --accent-3:#4ee6cc;
+    --danger:#ff7892;
+    --scope-1:#ff7892; --scope-2:#4ee6cc; --scope-3:#c4a8ff;
+    --accent-tint:rgba(196,168,255,0.18);
+    --accent-tint-strong:rgba(196,168,255,0.30);
+    --scope1-tint:rgba(255,120,146,0.14);
+    --scope2-tint:rgba(78,230,204,0.14);
   }
-  /* Solar — light, clean white, amber/cyan corporate */
+  /* Solar — bright light, professional corporate */
   [data-theme="solar"]{
-    --bg-0:#f4f6fa; --bg-1:#ffffff; --bg-2:#f7f9fc; --bg-3:#eef2f7;
-    --line:#dde3eb; --line-2:#c9d3e0;
-    --ink-0:#0f172a; --ink-1:#475569; --ink-2:#64748b; --ink-3:#94a3b8;
-    --accent:#0891b2; --accent-ink:#ffffff;
-    --accent-2:#d97706; --accent-2-ink:#ffffff;
-    --accent-3:#2563eb;
-    --danger:#dc2626;
-    --scope-1:#ea580c; --scope-2:#2563eb; --scope-3:#0891b2;
-    --accent-tint:rgba(8,145,178,0.10);
-    --accent-tint-strong:rgba(8,145,178,0.18);
-    --scope1-tint:rgba(234,88,12,0.10);
-    --scope2-tint:rgba(37,99,235,0.10);
+    --bg-0:#f7f9fc; --bg-1:#ffffff; --bg-2:#f1f5fa; --bg-3:#e6eef6;
+    --line:#d4dee9; --line-2:#b8c5d6;
+    --ink-0:#0b1729; --ink-1:#3e4c63; --ink-2:#5e6e85; --ink-3:#8b97aa;
+    --accent:#0aa8c4; --accent-ink:#ffffff;
+    --accent-2:#e8780a; --accent-2-ink:#ffffff;
+    --accent-3:#2962ff;
+    --danger:#e02b3b;
+    --scope-1:#e8530c; --scope-2:#2962ff; --scope-3:#0aa8c4;
+    --accent-tint:rgba(10,168,196,0.12);
+    --accent-tint-strong:rgba(10,168,196,0.22);
+    --scope1-tint:rgba(232,83,12,0.10);
+    --scope2-tint:rgba(41,98,255,0.10);
   }
-  /* Paper — warm off-white, slate/indigo minimal */
+  /* Paper — warm cream with indigo/burnt-orange */
   [data-theme="paper"]{
-    --bg-0:#f5f1e8; --bg-1:#fbf8f1; --bg-2:#f0ebde; --bg-3:#e8e1d0;
-    --line:#d6cdb7; --line-2:#c2b89e;
-    --ink-0:#1c1917; --ink-1:#44403c; --ink-2:#78716c; --ink-3:#a8a29e;
-    --accent:#4f46e5; --accent-ink:#ffffff;
-    --accent-2:#b45309; --accent-2-ink:#ffffff;
-    --accent-3:#0e7490;
-    --danger:#b91c1c;
-    --scope-1:#c2410c; --scope-2:#0e7490; --scope-3:#4f46e5;
-    --accent-tint:rgba(79,70,229,0.10);
-    --accent-tint-strong:rgba(79,70,229,0.18);
-    --scope1-tint:rgba(194,65,12,0.10);
-    --scope2-tint:rgba(14,116,144,0.10);
+    --bg-0:#faf6ec; --bg-1:#ffffff; --bg-2:#f3eedf; --bg-3:#ebe4d1;
+    --line:#d4cab1; --line-2:#bcb094;
+    --ink-0:#171513; --ink-1:#3d3a36; --ink-2:#6e6a62; --ink-3:#9d978c;
+    --accent:#5b52e8; --accent-ink:#ffffff;
+    --accent-2:#c2640a; --accent-2-ink:#ffffff;
+    --accent-3:#108faa;
+    --danger:#c9242b;
+    --scope-1:#d04b18; --scope-2:#108faa; --scope-3:#5b52e8;
+    --accent-tint:rgba(91,82,232,0.12);
+    --accent-tint-strong:rgba(91,82,232,0.22);
+    --scope1-tint:rgba(208,75,24,0.10);
+    --scope2-tint:rgba(16,143,170,0.10);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -119,6 +120,9 @@
     line-height:1.5;
     overflow:hidden;
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    font-feature-settings:'cv11','ss01','ss03','cv02';
+    text-rendering:optimizeLegibility;
   }
   /* ============ LOGIN ============ */
   #login-screen{
@@ -149,7 +153,8 @@
     margin-bottom:8px;
   }
   .login-title{
-    font-size:32px;font-weight:800;letter-spacing:-0.02em;
+    font-family:var(--display);
+    font-size:34px;font-weight:700;letter-spacing:-0.025em;
     margin-bottom:6px;
   }
   .login-sub{color:var(--ink-1);font-size:13px;margin-bottom:32px}
@@ -195,16 +200,18 @@
   }
   .brand{
     display:flex;align-items:center;gap:10px;
-    font-weight:800;letter-spacing:-0.01em;
+    font-family:var(--display);font-weight:700;letter-spacing:-0.02em;
   }
   .brand-mark{
-    width:28px;height:28px;
+    width:30px;height:30px;
     background:linear-gradient(135deg,var(--accent),var(--accent-3));
     display:grid;place-items:center;
-    font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent-ink);
+    font-family:var(--display);font-size:16px;font-weight:700;color:var(--accent-ink);
+    border-radius:6px;
+    box-shadow:0 2px 8px var(--accent-tint-strong);
   }
-  .brand-text{font-size:15px}
-  .brand-text span{color:var(--ink-2);font-weight:400;margin-left:6px;font-size:11px;letter-spacing:0.2em}
+  .brand-text{font-size:16px}
+  .brand-text span{color:var(--ink-2);font-weight:400;margin-left:8px;font-size:10.5px;letter-spacing:0.18em;font-family:var(--mono)}
   .topbar-status{
     margin-left:auto;display:flex;align-items:center;gap:20px;
     font-family:var(--mono);font-size:11px;color:var(--ink-2);
@@ -310,6 +317,8 @@
     color:var(--ink-2);
   }
   .nav-item.active .nav-icon{color:var(--accent)}
+  .nav-admin{display:none}
+  body.is-admin .nav-admin{display:flex}
   .nav-badge{
     margin-left:auto;font-family:var(--mono);font-size:10px;
     color:var(--ink-3);
@@ -322,7 +331,9 @@
     margin-bottom:24px;flex-wrap:wrap;gap:16px;
   }
   .page-title{
-    font-size:24px;font-weight:800;letter-spacing:-0.02em;
+    font-family:var(--display);
+    font-size:26px;font-weight:700;letter-spacing:-0.025em;
+    line-height:1.2;
   }
   .page-sub{
     font-family:var(--mono);font-size:11px;letter-spacing:0.15em;
@@ -333,19 +344,20 @@
   .btn{
     background:var(--bg-2);border:1px solid var(--line);
     color:var(--ink-0);padding:9px 14px;cursor:pointer;
-    font-family:var(--sans);font-size:12px;font-weight:600;
+    font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:0.01em;
     display:inline-flex;align-items:center;gap:6px;
-    transition:all .12s;
+    transition:all .15s;
+    border-radius:6px;
   }
-  .btn:hover{border-color:var(--accent);color:var(--accent)}
-  .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-  .btn-primary:hover{background:var(--accent);filter:brightness(1.1);color:var(--accent-ink)}
+  .btn:hover{border-color:var(--accent);color:var(--accent);background:var(--bg-3)}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:0 1px 0 var(--accent-tint-strong)}
+  .btn-primary:hover{filter:brightness(1.12);color:var(--accent-ink);background:var(--accent);box-shadow:0 2px 8px var(--accent-tint-strong)}
   .btn-warn{border-color:var(--accent-2);color:var(--accent-2)}
-  .btn-warn:hover{background:var(--accent-2);color:var(--accent-2-ink)}
+  .btn-warn:hover{background:var(--accent-2);color:var(--accent-2-ink);border-color:var(--accent-2)}
   .btn-ghost{background:transparent}
   .btn-danger{border-color:var(--danger);color:var(--danger)}
-  .btn-danger:hover{background:var(--danger);color:#fff}
-  .btn-sm{padding:5px 9px;font-size:11px}
+  .btn-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+  .btn-sm{padding:5px 10px;font-size:11px;border-radius:4px}
 
   /* KPI row */
   .kpi-grid{
@@ -354,10 +366,13 @@
   }
   .kpi{
     background:var(--bg-1);border:1px solid var(--line);
-    padding:18px 18px 16px;position:relative;overflow:hidden;
+    padding:20px 20px 18px;position:relative;overflow:hidden;
+    border-radius:8px;
+    transition:border-color .15s, transform .15s;
   }
+  .kpi:hover{border-color:var(--line-2);transform:translateY(-1px)}
   .kpi::before{
-    content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+    content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
     background:var(--accent);
   }
   .kpi.s1::before{background:var(--scope-1)}
@@ -365,14 +380,16 @@
   .kpi.s3::before{background:var(--scope-3)}
   .kpi.warn::before{background:var(--accent-2)}
   .kpi-label{
-    font-family:var(--mono);font-size:10px;letter-spacing:0.15em;
-    color:var(--ink-2);text-transform:uppercase;margin-bottom:8px;
+    font-family:var(--mono);font-size:10px;letter-spacing:0.18em;
+    color:var(--ink-2);text-transform:uppercase;margin-bottom:10px;
+    font-weight:500;
   }
   .kpi-value{
-    font-family:var(--mono);font-size:26px;font-weight:600;
-    color:var(--ink-0);letter-spacing:-0.01em;line-height:1.1;
+    font-family:var(--display);font-size:30px;font-weight:600;
+    color:var(--ink-0);letter-spacing:-0.025em;line-height:1.1;
+    font-variant-numeric:tabular-nums;
   }
-  .kpi-unit{font-size:12px;color:var(--ink-2);margin-left:4px}
+  .kpi-unit{font-size:12px;color:var(--ink-2);margin-left:5px;font-family:var(--sans);font-weight:500}
   .kpi-meta{
     margin-top:8px;font-size:11px;color:var(--ink-2);
     display:flex;align-items:center;gap:6px;
@@ -386,14 +403,14 @@
   /* Card */
   .card{
     background:var(--bg-1);border:1px solid var(--line);
-    margin-bottom:18px;
+    margin-bottom:18px;border-radius:8px;overflow:hidden;
   }
   .card-head{
-    padding:14px 18px;border-bottom:1px solid var(--line);
+    padding:15px 20px;border-bottom:1px solid var(--line);
     display:flex;align-items:center;justify-content:space-between;
     flex-wrap:wrap;gap:10px;
   }
-  .card-title{font-size:13px;font-weight:700;letter-spacing:-0.01em}
+  .card-title{font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:-0.015em}
   .card-sub{
     font-family:var(--mono);font-size:10px;letter-spacing:0.15em;
     color:var(--ink-2);text-transform:uppercase;margin-top:2px;
@@ -407,26 +424,28 @@
 
   /* Tables */
   table.data{
-    width:100%;border-collapse:collapse;font-size:12.5px;
+    width:100%;border-collapse:collapse;font-size:13px;
   }
   table.data th{
-    text-align:left;padding:10px 14px;
-    font-family:var(--mono);font-size:10px;letter-spacing:0.15em;
+    text-align:left;padding:11px 14px;
+    font-family:var(--mono);font-size:10px;letter-spacing:0.16em;font-weight:600;
     color:var(--ink-2);text-transform:uppercase;
     border-bottom:1px solid var(--line);
     background:var(--bg-2);
     position:sticky;top:0;
   }
   table.data td{
-    padding:10px 14px;
+    padding:11px 14px;
     border-bottom:1px solid var(--line);
     color:var(--ink-0);
+    font-weight:400;
   }
   table.data tr:hover td{background:var(--bg-2)}
-  table.data td.num{font-family:var(--mono);text-align:right}
+  table.data td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
   table.data .tag{
-    display:inline-block;font-family:var(--mono);font-size:9px;
-    letter-spacing:0.1em;padding:2px 6px;text-transform:uppercase;
+    display:inline-block;font-family:var(--mono);font-size:9px;font-weight:600;
+    letter-spacing:0.12em;padding:3px 7px;text-transform:uppercase;
+    border-radius:3px;
   }
   .tag.s1{background:var(--scope1-tint);color:var(--scope-1)}
   .tag.s2{background:var(--scope2-tint);color:var(--scope-2)}
@@ -509,6 +528,38 @@
   .toast.warn{border-left-color:var(--accent-2)}
   @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
 
+  /* Modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(2px);
+    z-index:600;display:flex;align-items:center;justify-content:center;
+    animation:fadeIn .15s ease-out;
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{
+    background:var(--bg-1);border:1px solid var(--line);
+    width:520px;max-width:calc(100% - 40px);max-height:calc(100vh - 40px);
+    border-radius:10px;display:flex;flex-direction:column;
+    box-shadow:0 24px 48px rgba(0,0,0,0.4);
+    overflow:hidden;
+  }
+  .modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--line);
+  }
+  .modal-body{padding:20px;overflow-y:auto;flex:1}
+  .modal-foot{
+    display:flex;justify-content:flex-end;gap:8px;
+    padding:14px 20px;border-top:1px solid var(--line);background:var(--bg-2);
+  }
+
+  /* Small user avatar */
+  .user-avatar-sm{
+    width:32px;height:32px;border-radius:50%;
+    display:grid;place-items:center;flex-shrink:0;
+    font-family:var(--display);font-size:13px;font-weight:700;color:var(--accent-ink);
+  }
+
   /* Sankey */
   #sankey-svg{width:100%;height:380px}
   .sankey-node rect{fill:var(--accent);stroke:none}
@@ -576,17 +627,10 @@
     <input type="text" id="login-user" placeholder="e.g. admin" autocomplete="username">
     <label>PASSWORD</label>
     <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
-    <label>ROLE</label>
-    <select id="login-role">
-      <option value="admin">Administrator — full access</option>
-      <option value="manager">Sustainability Manager — write</option>
-      <option value="analyst">Analyst — read & data entry</option>
-      <option value="viewer">Viewer — read only</option>
-    </select>
-    <button class="login-btn" onclick="doLogin()">ENTER PLATFORM →</button>
+    <button class="login-btn" onclick="doLogin()">SIGN IN →</button>
     <div class="login-hint">
-      Demo credentials — any username/password<br>
-      Try: <code>admin</code> / <code>demo</code>
+      Default admin — <code>admin</code> / <code>admin123</code><br>
+      Change password after first sign-in
     </div>
   </div>
 </div>
@@ -610,12 +654,12 @@
         <span style="font-size:9px;opacity:0.6">▼</span>
       </button>
       <div class="theme-menu" id="theme-menu">
-        <div class="theme-opt" data-theme="midnight" onclick="setTheme('midnight')"><span class="sw" style="background:linear-gradient(135deg,#00d4aa,#5eb1ff)"></span>Midnight<span class="sw-tag">DARK</span></div>
-        <div class="theme-opt" data-theme="carbon"   onclick="setTheme('carbon')"><span class="sw" style="background:linear-gradient(135deg,#34d399,#a3e635)"></span>Carbon<span class="sw-tag">DARK</span></div>
-        <div class="theme-opt" data-theme="forest"   onclick="setTheme('forest')"><span class="sw" style="background:linear-gradient(135deg,#7dd3a8,#e6b800)"></span>Forest<span class="sw-tag">DARK</span></div>
-        <div class="theme-opt" data-theme="aurora"   onclick="setTheme('aurora')"><span class="sw" style="background:linear-gradient(135deg,#a78bfa,#f472b6,#2dd4bf)"></span>Aurora<span class="sw-tag">DARK</span></div>
-        <div class="theme-opt" data-theme="solar"    onclick="setTheme('solar')"><span class="sw" style="background:linear-gradient(135deg,#0891b2,#d97706)"></span>Solar<span class="sw-tag">LIGHT</span></div>
-        <div class="theme-opt" data-theme="paper"    onclick="setTheme('paper')"><span class="sw" style="background:linear-gradient(135deg,#4f46e5,#b45309)"></span>Paper<span class="sw-tag">LIGHT</span></div>
+        <div class="theme-opt" data-theme="midnight" onclick="setTheme('midnight')"><span class="sw" style="background:linear-gradient(135deg,#22e3b1,#6ec1ff)"></span>Midnight<span class="sw-tag">DARK</span></div>
+        <div class="theme-opt" data-theme="carbon"   onclick="setTheme('carbon')"><span class="sw" style="background:linear-gradient(135deg,#4ee0a8,#bfff5a)"></span>Carbon<span class="sw-tag">DARK</span></div>
+        <div class="theme-opt" data-theme="forest"   onclick="setTheme('forest')"><span class="sw" style="background:linear-gradient(135deg,#8ee5b8,#ffd54a)"></span>Forest<span class="sw-tag">DARK</span></div>
+        <div class="theme-opt" data-theme="aurora"   onclick="setTheme('aurora')"><span class="sw" style="background:linear-gradient(135deg,#c4a8ff,#ff8ec9,#4ee6cc)"></span>Aurora<span class="sw-tag">DARK</span></div>
+        <div class="theme-opt" data-theme="solar"    onclick="setTheme('solar')"><span class="sw" style="background:linear-gradient(135deg,#0aa8c4,#e8780a)"></span>Solar<span class="sw-tag">LIGHT</span></div>
+        <div class="theme-opt" data-theme="paper"    onclick="setTheme('paper')"><span class="sw" style="background:linear-gradient(135deg,#5b52e8,#c2640a)"></span>Paper<span class="sw-tag">LIGHT</span></div>
       </div>
     </div>
     <div class="user-chip">
@@ -653,6 +697,7 @@
       <div class="nav-item" data-page="reports"><span class="nav-icon">⎙</span> ESG Reports</div>
       <div class="nav-item" data-page="factors"><span class="nav-icon">∑</span> Emission Factors</div>
       <div class="nav-item" data-page="audit"><span class="nav-icon">≡</span> Audit Trail</div>
+      <div class="nav-item nav-admin" data-page="users"><span class="nav-icon">⚇</span> User Management</div>
       <div class="nav-item" data-page="settings"><span class="nav-icon">✦</span> Settings</div>
     </div>
   </aside>
@@ -673,6 +718,7 @@ const STORAGE_KEY = 'carbonops_v1';
 const DEFAULT_STATE = {
   org: { name: 'ACME MFG PVT LTD', country: 'India', netZeroYear: 2045, baselineYear: 2024, baselineCO2e: 12500 },
   user: null,
+  users: [],  // populated on first boot with seed admin
   theme: 'midnight',
   upstream: [],
   transport: [],
@@ -895,21 +941,87 @@ function getTotals(){
 }
 
 /* ===================================================================
+   USER MANAGEMENT
+=================================================================== */
+const ROLE_NAMES = {
+  admin:'Administrator',
+  manager:'Sustainability Manager',
+  analyst:'Analyst',
+  viewer:'Viewer'
+};
+const ROLE_DESC = {
+  admin:'Full access — manage users, settings, all data',
+  manager:'Read/write — full data entry & reporting',
+  analyst:'Read/write — data entry only',
+  viewer:'Read only — view dashboards & reports'
+};
+
+async function hashPassword(pw){
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function uid(){
+  return 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+async function seedAdminIfEmpty(){
+  if (!state.users || state.users.length === 0){
+    const hash = await hashPassword('admin123');
+    state.users = [{
+      id: uid(),
+      username: 'admin',
+      name: 'Administrator',
+      email: '',
+      role: 'admin',
+      passwordHash: hash,
+      active: true,
+      createdAt: new Date().toISOString(),
+      lastLogin: null,
+      createdBy: 'system'
+    }];
+    saveState();
+  }
+}
+function findUserByUsername(u){
+  return state.users.find(x => x.username.toLowerCase() === (u||'').toLowerCase());
+}
+
+/* ===================================================================
    LOGIN / LOGOUT
 =================================================================== */
-function doLogin(){
-  const name = document.getElementById('login-user').value.trim() || 'admin';
+async function doLogin(){
+  const name = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
-  const role = document.getElementById('login-role').value;
-  if (!pass){ toast('Enter a password', 'err'); return; }
-  const ROLE_NAMES = { admin:'Administrator', manager:'Sustainability Manager', analyst:'Analyst', viewer:'Viewer' };
-  state.user = { name, role, roleName: ROLE_NAMES[role] };
-  audit('LOGIN', `User ${name} signed in as ${ROLE_NAMES[role]}`);
+  if (!name || !pass){ toast('Enter username and password', 'err'); return; }
+
+  await seedAdminIfEmpty();
+
+  const u = findUserByUsername(name);
+  if (!u){ toast('Invalid username or password', 'err'); return; }
+  if (!u.active){ toast('Account is deactivated. Contact administrator.', 'err'); return; }
+  const hash = await hashPassword(pass);
+  if (hash !== u.passwordHash){ toast('Invalid username or password', 'err'); return; }
+
+  // Success
+  u.lastLogin = new Date().toISOString();
+  state.user = {
+    id: u.id, name: u.username, displayName: u.name,
+    role: u.role, roleName: ROLE_NAMES[u.role], email: u.email
+  };
+  saveState();
+  audit('LOGIN', `${u.username} signed in as ${ROLE_NAMES[u.role]}`);
+  enterApp();
+}
+function enterApp(){
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').classList.add('ready');
-  document.getElementById('user-name').textContent = name;
-  document.getElementById('user-role').textContent = ROLE_NAMES[role];
-  document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('user-name').textContent = state.user.displayName || state.user.name;
+  document.getElementById('user-role').textContent = state.user.roleName || ROLE_NAMES[state.user.role];
+  document.getElementById('user-avatar').textContent = (state.user.displayName || state.user.name).charAt(0).toUpperCase();
+  document.getElementById('org-name').textContent = state.org.name;
+  document.body.classList.toggle('is-admin', state.user.role === 'admin');
+  // Clear password field for safety
+  document.getElementById('login-pass').value = '';
   renderPage('dashboard');
   startClock();
 }
@@ -917,6 +1029,7 @@ function doLogout(){
   audit('LOGOUT', `User ${state.user?.name} signed out`);
   state.user = null;
   saveState();
+  document.body.classList.remove('is-admin');
   document.getElementById('app').classList.remove('ready');
   document.getElementById('login-screen').style.display = 'flex';
 }
@@ -1248,16 +1361,16 @@ function chartOpts(opt={}){
     maintainAspectRatio:false,
     plugins:{
       legend:{ display:opt.legend!==false, position:opt.legendPos||'bottom',
-        labels:{ color:ink1, font:{size:11, family:'JetBrains Mono'}, boxWidth:12, padding:14 }
+        labels:{ color:ink1, font:{size:11, family:'JetBrains Mono, monospace'}, boxWidth:12, padding:14 }
       },
       tooltip:{
         backgroundColor:bg2, borderColor:line, borderWidth:1, padding:10,
-        titleColor:ink0, bodyColor:ink1, titleFont:{family:'JetBrains Mono'},
+        titleColor:ink0, bodyColor:ink1, titleFont:{family:'JetBrains Mono, monospace'},
       }
     },
     scales: opt.scales !== false ? {
-      x: { ticks:{color:ink2,font:{family:'JetBrains Mono',size:10}}, grid:{color:bg3} },
-      y: { ticks:{color:ink2,font:{family:'JetBrains Mono',size:10}}, grid:{color:bg3}, beginAtZero:true }
+      x: { ticks:{color:ink2,font:{family:'JetBrains Mono, monospace',size:10}}, grid:{color:bg3} },
+      y: { ticks:{color:ink2,font:{family:'JetBrains Mono, monospace',size:10}}, grid:{color:bg3}, beginAtZero:true }
     } : {},
     cutout: opt.cutout
   };
@@ -2119,7 +2232,7 @@ POST_RENDER.sankey = () => {
     .attr('dy','0.35em')
     .attr('text-anchor', d => d.x0 < width/2 ? 'start' : 'end')
     .attr('fill','#e6edf3')
-    .style('font-family','JetBrains Mono')
+    .style('font-family','JetBrains Mono, monospace')
     .style('font-size','11px')
     .text(d => `${d.name} (${fmtCO2(d.value)})`);
 };
@@ -2390,9 +2503,10 @@ PAGES.settings = () => `
   <div class="page-header">
     <div>
       <div class="page-title">Platform Settings</div>
-      <div class="page-sub">ORGANISATION · PRODUCT · DATA</div>
+      <div class="page-sub">ORGANISATION · PRODUCT · ACCOUNT · DATA</div>
     </div>
   </div>
+
   <div class="grid-2">
     <div class="card">
       <div class="card-head"><div class="card-title">Organisation</div></div>
@@ -2420,16 +2534,36 @@ PAGES.settings = () => `
       </div>
     </div>
   </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">Your Account</div></div>
+    <div class="card-body" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div class="user-avatar-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent-3));width:48px;height:48px;font-size:20px;border-radius:50%">
+        ${state.user ? (state.user.displayName||state.user.name).charAt(0).toUpperCase() : '?'}
+      </div>
+      <div style="flex:1">
+        <div style="font-family:var(--display);font-size:16px;font-weight:600">${state.user ? escapeHtml(state.user.displayName||state.user.name) : '—'}</div>
+        <div style="color:var(--ink-2);font-size:12px;margin-top:2px">${state.user ? state.user.roleName : ''}&nbsp;&nbsp;${state.user?.email ? '· ' + escapeHtml(state.user.email) : ''}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="changeOwnPassword()">↻ CHANGE PASSWORD</button>
+        ${canAdmin()?`<button class="btn" onclick="renderPage('users')">⚇ MANAGE USERS</button>`:''}
+      </div>
+    </div>
+  </div>
+
   ${canAdmin()?`
   <div class="card">
     <div class="card-head"><div class="card-title">Data Management</div></div>
     <div class="card-body">
-      <p style="color:var(--ink-1);font-size:12.5px;margin-bottom:14px">Backup or reset all platform data. Resets clear all entries but preserve user account.</p>
-      <button class="btn" onclick="backupAll()">⬇ DOWNLOAD FULL BACKUP (JSON)</button>
-      <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreBackup(this)">
-      <button class="btn" onclick="document.getElementById('restore-file').click()">⬆ RESTORE BACKUP</button>
-      <button class="btn btn-danger" onclick="resetAll()">⚠ RESET ALL DATA</button>
-      <button class="btn btn-warn" onclick="loadSampleData()">+ LOAD SAMPLE DATA</button>
+      <p style="color:var(--ink-1);font-size:12.5px;margin-bottom:16px">Backup or reset all platform emission data. Users and settings are preserved on reset.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="backupAll()">⬇ DOWNLOAD BACKUP</button>
+        <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreBackup(this)">
+        <button class="btn" onclick="document.getElementById('restore-file').click()">⬆ RESTORE BACKUP</button>
+        <button class="btn btn-warn" onclick="loadSampleData()">+ LOAD SAMPLE DATA</button>
+        <button class="btn btn-danger" onclick="resetAll()">⚠ RESET ALL DATA</button>
+      </div>
     </div>
   </div>`:''}
 `;
@@ -2452,6 +2586,284 @@ function saveProductSettings(){
   saveState();
   toast('Product saved');
 }
+/* ===================================================================
+   USER MANAGEMENT PAGE
+=================================================================== */
+PAGES.users = () => {
+  if (!canAdmin()){
+    return `<div class="page-header"><div><div class="page-title">Access Denied</div>
+      <div class="page-sub">ADMINISTRATOR PRIVILEGES REQUIRED</div></div></div>
+      <div class="card"><div class="card-body" style="padding:40px;text-align:center;color:var(--ink-1)">
+        Only administrators can manage users. Contact your platform administrator.
+      </div></div>`;
+  }
+  const sortedUsers = [...state.users].sort((a,b) => a.username.localeCompare(b.username));
+  const activeCount = state.users.filter(u => u.active).length;
+  const adminCount = state.users.filter(u => u.role === 'admin' && u.active).length;
+  const rows = sortedUsers.map(u => {
+    const isSelf = state.user && u.id === state.user.id;
+    const last = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar-sm" style="background:${u.active?'linear-gradient(135deg,var(--accent),var(--accent-3))':'var(--bg-3)'}">${u.username.charAt(0).toUpperCase()}</div>
+        <div>
+          <div style="font-weight:600">${escapeHtml(u.username)}${isSelf?' <span style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:0.1em">YOU</span>':''}</div>
+          <div style="font-size:11px;color:var(--ink-2)">${escapeHtml(u.name || '—')}</div>
+        </div>
+      </div></td>
+      <td>${escapeHtml(u.email || '—')}</td>
+      <td><span class="tag" style="background:var(--accent-tint);color:var(--accent)">${ROLE_NAMES[u.role]}</span></td>
+      <td><span class="tag" style="background:${u.active?'var(--accent-tint)':'rgba(220,38,38,0.10)'};color:${u.active?'var(--accent)':'var(--danger)'}">${u.active?'ACTIVE':'DISABLED'}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${last}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm" onclick="editUserDialog('${u.id}')" title="Edit">✎</button>
+        <button class="btn btn-sm" onclick="resetUserPassword('${u.id}')" title="Reset password">↻</button>
+        <button class="btn btn-sm ${u.active?'btn-warn':''}" onclick="toggleUserActive('${u.id}')" title="${u.active?'Disable':'Enable'}">${u.active?'⏻':'✓'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" ${isSelf?'disabled':''} title="Delete">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">User Management</div>
+      <div class="page-sub">ACCOUNTS · ROLES · ACCESS CONTROL</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="newUserDialog()">+ NEW USER</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Users</div><div class="kpi-value">${state.users.length}</div></div>
+    <div class="kpi s3"><div class="kpi-label">Active</div><div class="kpi-value">${activeCount}</div></div>
+    <div class="kpi s2"><div class="kpi-label">Administrators</div><div class="kpi-value">${adminCount}</div></div>
+    <div class="kpi warn"><div class="kpi-label">Disabled</div><div class="kpi-value">${state.users.length - activeCount}</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><div class="card-title">All Users</div><div class="card-sub">${state.users.length} ACCOUNTS</div></div>
+    </div>
+    <div class="card-body tight">
+      <table class="data">
+        <thead><tr>
+          <th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th style="text-align:right">Actions</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="6" class="empty">No users yet</td></tr>'}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">Role Permissions</div></div>
+    <div class="card-body">
+      <table class="data">
+        <thead><tr><th>Role</th><th>Read</th><th>Write Data</th><th>Settings</th><th>Manage Users</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Administrator</strong></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td style="color:var(--ink-1)">${ROLE_DESC.admin}</td></tr>
+          <tr><td><strong>Sustainability Manager</strong></td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td style="color:var(--ink-1)">${ROLE_DESC.manager}</td></tr>
+          <tr><td><strong>Analyst</strong></td><td>✓</td><td>✓</td><td>—</td><td>—</td><td style="color:var(--ink-1)">${ROLE_DESC.analyst}</td></tr>
+          <tr><td><strong>Viewer</strong></td><td>✓</td><td>—</td><td>—</td><td>—</td><td style="color:var(--ink-1)">${ROLE_DESC.viewer}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- New / Edit dialog -->
+  <div id="user-dialog" class="modal-backdrop" style="display:none">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="card-title" id="user-dialog-title">New User</div>
+        <button class="btn btn-sm btn-ghost" onclick="closeUserDialog()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="user-edit-id" value="">
+        <div class="form-grid">
+          <div class="field"><label>USERNAME *</label>
+            <input type="text" id="user-form-username" placeholder="jdoe" autocomplete="off"></div>
+          <div class="field"><label>FULL NAME</label>
+            <input type="text" id="user-form-name" placeholder="Jane Doe"></div>
+          <div class="field"><label>EMAIL</label>
+            <input type="email" id="user-form-email" placeholder="jane@company.com"></div>
+          <div class="field"><label>ROLE *</label>
+            <select id="user-form-role">
+              <option value="viewer">Viewer — read only</option>
+              <option value="analyst">Analyst — data entry</option>
+              <option value="manager">Sustainability Manager — full data + settings</option>
+              <option value="admin">Administrator — full access</option>
+            </select></div>
+          <div class="field" id="user-form-password-field"><label>PASSWORD *</label>
+            <input type="password" id="user-form-password" placeholder="Min 6 characters" autocomplete="new-password"></div>
+          <div class="field"><label>STATUS</label>
+            <select id="user-form-active">
+              <option value="true">Active</option>
+              <option value="false">Disabled</option>
+            </select></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeUserDialog()">CANCEL</button>
+        <button class="btn btn-primary" onclick="saveUserDialog()">SAVE USER</button>
+      </div>
+    </div>
+  </div>
+  `;
+};
+
+function newUserDialog(){
+  document.getElementById('user-dialog-title').textContent = 'Create New User';
+  document.getElementById('user-edit-id').value = '';
+  document.getElementById('user-form-username').value = '';
+  document.getElementById('user-form-name').value = '';
+  document.getElementById('user-form-email').value = '';
+  document.getElementById('user-form-role').value = 'analyst';
+  document.getElementById('user-form-password').value = '';
+  document.getElementById('user-form-password').placeholder = 'Min 6 characters';
+  document.getElementById('user-form-active').value = 'true';
+  document.getElementById('user-form-password-field').style.display = '';
+  document.getElementById('user-dialog').style.display = 'flex';
+  setTimeout(()=>document.getElementById('user-form-username').focus(), 50);
+}
+function editUserDialog(id){
+  const u = state.users.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('user-dialog-title').textContent = `Edit User: ${u.username}`;
+  document.getElementById('user-edit-id').value = id;
+  document.getElementById('user-form-username').value = u.username;
+  document.getElementById('user-form-name').value = u.name || '';
+  document.getElementById('user-form-email').value = u.email || '';
+  document.getElementById('user-form-role').value = u.role;
+  document.getElementById('user-form-password').value = '';
+  document.getElementById('user-form-password').placeholder = 'Leave blank to keep current';
+  document.getElementById('user-form-active').value = u.active ? 'true' : 'false';
+  document.getElementById('user-form-password-field').style.display = '';
+  document.getElementById('user-dialog').style.display = 'flex';
+}
+function closeUserDialog(){
+  document.getElementById('user-dialog').style.display = 'none';
+}
+async function saveUserDialog(){
+  const id = document.getElementById('user-edit-id').value;
+  const username = document.getElementById('user-form-username').value.trim();
+  const name = document.getElementById('user-form-name').value.trim();
+  const email = document.getElementById('user-form-email').value.trim();
+  const role = document.getElementById('user-form-role').value;
+  const pw = document.getElementById('user-form-password').value;
+  const active = document.getElementById('user-form-active').value === 'true';
+
+  if (!username){ toast('Username is required', 'err'); return; }
+  if (!/^[a-zA-Z0-9._-]{2,32}$/.test(username)){
+    toast('Username: 2-32 chars, letters/digits/._-', 'err'); return;
+  }
+
+  // Check duplicate username (case-insensitive, excluding self)
+  const dup = state.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.id !== id);
+  if (dup){ toast('Username already exists', 'err'); return; }
+
+  if (id){
+    // Edit existing
+    const u = state.users.find(x => x.id === id);
+    if (!u){ toast('User not found', 'err'); return; }
+    // Don't allow disabling/demoting the last admin
+    if (u.role === 'admin' && (role !== 'admin' || !active)){
+      const otherAdmins = state.users.filter(x => x.id !== id && x.role === 'admin' && x.active).length;
+      if (otherAdmins === 0){
+        toast('Cannot demote/disable the last admin', 'err'); return;
+      }
+    }
+    u.username = username;
+    u.name = name;
+    u.email = email;
+    u.role = role;
+    u.active = active;
+    if (pw){
+      if (pw.length < 6){ toast('Password must be 6+ characters', 'err'); return; }
+      u.passwordHash = await hashPassword(pw);
+    }
+    audit('USER_UPDATE', `Updated user ${username} (role: ${ROLE_NAMES[role]}, active: ${active})`);
+    toast(`User "${username}" updated`);
+  } else {
+    // Create new
+    if (!pw || pw.length < 6){ toast('Password required, min 6 characters', 'err'); return; }
+    const hash = await hashPassword(pw);
+    state.users.push({
+      id: uid(),
+      username, name, email, role, active,
+      passwordHash: hash,
+      createdAt: new Date().toISOString(),
+      lastLogin: null,
+      createdBy: state.user.name
+    });
+    audit('USER_CREATE', `Created user ${username} (${ROLE_NAMES[role]})`);
+    toast(`User "${username}" created`);
+  }
+  saveState();
+  closeUserDialog();
+  renderPage('users');
+}
+async function resetUserPassword(id){
+  const u = state.users.find(x => x.id === id);
+  if (!u) return;
+  const pw = prompt(`Enter new password for "${u.username}":\n(min 6 characters)`);
+  if (!pw) return;
+  if (pw.length < 6){ toast('Password must be 6+ characters', 'err'); return; }
+  u.passwordHash = await hashPassword(pw);
+  saveState();
+  audit('PASSWORD_RESET', `Password reset for user ${u.username}`);
+  toast(`Password reset for "${u.username}"`);
+}
+function toggleUserActive(id){
+  const u = state.users.find(x => x.id === id);
+  if (!u) return;
+  if (u.active && u.role === 'admin'){
+    const otherAdmins = state.users.filter(x => x.id !== id && x.role === 'admin' && x.active).length;
+    if (otherAdmins === 0){ toast('Cannot disable the last active admin', 'err'); return; }
+  }
+  u.active = !u.active;
+  saveState();
+  audit(u.active ? 'USER_ENABLE' : 'USER_DISABLE', `${u.active?'Enabled':'Disabled'} user ${u.username}`);
+  toast(`"${u.username}" ${u.active?'enabled':'disabled'}`);
+  renderPage('users');
+}
+function deleteUser(id){
+  const u = state.users.find(x => x.id === id);
+  if (!u) return;
+  if (state.user && u.id === state.user.id){ toast('You cannot delete yourself', 'err'); return; }
+  if (u.role === 'admin'){
+    const otherAdmins = state.users.filter(x => x.id !== id && x.role === 'admin' && x.active).length;
+    if (otherAdmins === 0){ toast('Cannot delete the last admin', 'err'); return; }
+  }
+  if (!confirm(`Permanently delete user "${u.username}"? This cannot be undone.`)) return;
+  state.users = state.users.filter(x => x.id !== id);
+  saveState();
+  audit('USER_DELETE', `Deleted user ${u.username}`);
+  toast(`User "${u.username}" deleted`);
+  renderPage('users');
+}
+
+/* ===================================================================
+   CHANGE OWN PASSWORD (available to all logged-in users)
+=================================================================== */
+async function changeOwnPassword(){
+  const current = prompt('Enter your current password:');
+  if (!current) return;
+  const u = state.users.find(x => x.id === state.user.id);
+  if (!u){ toast('User record not found', 'err'); return; }
+  const curHash = await hashPassword(current);
+  if (curHash !== u.passwordHash){ toast('Current password is incorrect', 'err'); return; }
+  const newPw = prompt('Enter new password (min 6 characters):');
+  if (!newPw) return;
+  if (newPw.length < 6){ toast('Password must be 6+ characters', 'err'); return; }
+  const confirmPw = prompt('Confirm new password:');
+  if (newPw !== confirmPw){ toast('Passwords do not match', 'err'); return; }
+  u.passwordHash = await hashPassword(newPw);
+  saveState();
+  audit('PASSWORD_CHANGE', `${u.username} changed their own password`);
+  toast('Password changed successfully');
+}
+
 function backupAll(){
   const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
   const a = document.createElement('a');
@@ -2481,9 +2893,13 @@ function resetAll(){
   if (!confirm('Reset ALL platform data? This cannot be undone.')) return;
   if (!confirm('Really sure? All entries will be lost.')) return;
   const user = state.user;
+  const users = state.users;
+  const theme = state.theme;
   state = JSON.parse(JSON.stringify(DEFAULT_STATE));
   state.user = user;
-  audit('RESET', 'All data wiped');
+  state.users = users;
+  state.theme = theme;
+  audit('RESET', 'All emission data wiped (users & theme preserved)');
   saveState();
   renderPage('dashboard');
   toast('All data reset', 'warn');
@@ -2775,23 +3191,21 @@ function exportMonthly(){
 /* ===================================================================
    BOOT
 =================================================================== */
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   // Apply saved theme immediately (covers both login screen and app)
   applyTheme(state.theme || 'midnight');
+  // Make sure at least one admin exists
+  await seedAdminIfEmpty();
   // If user already exists in state, show app directly (auto-login from previous session)
   if (state.user){
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('ready');
-    document.getElementById('user-name').textContent = state.user.name;
-    document.getElementById('user-role').textContent = state.user.roleName || 'User';
-    document.getElementById('user-avatar').textContent = state.user.name.charAt(0).toUpperCase();
-    document.getElementById('org-name').textContent = state.org.name;
-    renderPage('dashboard');
-    startClock();
+    enterApp();
   }
   // Enter key on login
   document.getElementById('login-pass').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('login-user').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-pass').focus();
   });
 });
 </script>
