@@ -338,6 +338,27 @@
     padding:8px 14px;border-top:1px solid var(--line);
   }
 
+  /* Plant read-only banner */
+  .plant-readonly-banner{
+    display:flex;align-items:center;gap:10px;
+    background:var(--amber-l,#fef3c7);
+    border:1px solid #fde68a;
+    border-radius:8px;
+    padding:12px 16px;
+    font-size:13px;
+    color:#92400e;
+    margin-bottom:20px;
+  }
+  .plant-readonly-banner span{font-size:18px;flex-shrink:0}
+  [data-theme="midnight"] .plant-readonly-banner,
+  [data-theme="carbon"]   .plant-readonly-banner,
+  [data-theme="forest"]   .plant-readonly-banner,
+  [data-theme="aurora"]   .plant-readonly-banner{
+    background:rgba(217,119,6,0.12);
+    border-color:rgba(217,119,6,0.3);
+    color:var(--accent-2);
+  }
+
   /* Sidebar */
   .sidebar{
     background:var(--bg-1);
@@ -1382,7 +1403,24 @@ function doLogout(){
 }
 
 function canWrite(){
-  return state.user && state.user.role !== 'viewer';
+  if (!state.user) return false;
+  if (state.user.role === 'viewer') return false;
+  // Admins and Managers always have full write access on all plants
+  if (state.user.role === 'admin' || state.user.role === 'manager') return true;
+  // Analysts: check if they are assigned to the current plant
+  // plantAccess = [] means assigned to ALL plants (backwards compat)
+  // plantAccess = ['plant_x','main'] means only those plants
+  const access = state.user.plantAccess;
+  if (!access || access.length === 0) return true; // no restriction = all plants
+  return access.includes(CURRENT_PLANT_ID);
+}
+function canWritePlant(plantId){
+  if (!state.user) return false;
+  if (state.user.role === 'viewer') return false;
+  if (state.user.role === 'admin' || state.user.role === 'manager') return true;
+  const access = state.user.plantAccess;
+  if (!access || access.length === 0) return true;
+  return access.includes(plantId);
 }
 function canAdmin(){
   return state.user && state.user.role === 'admin';
@@ -1456,8 +1494,21 @@ function renderPage(page){
   const main = document.getElementById('main-content');
   const renderer = PAGES[page] || PAGES.dashboard;
   main.innerHTML = renderer();
+
+  // Show read-only banner on data-entry pages when user is restricted from this plant
+  const dataEntryPages = ['upstream','transport','manufacturing','downstream'];
+  if (dataEntryPages.includes(page) && !canWrite()){
+    const banner = document.createElement('div');
+    banner.className = 'plant-readonly-banner';
+    const plantName = state.currentPlant?.name || 'this plant';
+    const isViewer  = state.user?.role === 'viewer';
+    banner.innerHTML = isViewer
+      ? `<span>👁</span> <strong>View only</strong> — Your Viewer role cannot enter data on any plant.`
+      : `<span>🔒</span> <strong>Read only on ${escapeHtml(plantName)}</strong> — You are not assigned to this plant. Contact your administrator to get access.`;
+    main.insertBefore(banner, main.firstChild);
+  }
+
   main.scrollTop = 0;
-  // Post-render setup
   setTimeout(()=>{
     if (POST_RENDER[page]) POST_RENDER[page]();
     updateBadges();
@@ -3299,7 +3350,7 @@ PAGES.users = () => {
     <div class="card-body tight">
       <table class="data">
         <thead><tr>
-          <th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th style="text-align:right">Actions</th>
+          <th>User</th><th>Role</th><th>Plant Access</th><th>Status</th><th>Last Login</th><th style="text-align:right">Actions</th>
         </tr></thead>
         <tbody id="users-table-body">${rows || '<tr><td colspan="6" class="empty">No users yet</td></tr>'}</tbody>
       </table>
@@ -3336,7 +3387,7 @@ PAGES.users = () => {
           <div class="field"><label>EMAIL *</label>
             <input type="email" id="user-form-email" placeholder="jane@company.com"></div>
           <div class="field"><label>ROLE *</label>
-            <select id="user-form-role">
+            <select id="user-form-role" onchange="updatePlantAssignSection()">
               <option value="viewer">Viewer — read only</option>
               <option value="analyst">Analyst — data entry</option>
               <option value="manager">Sustainability Manager — full data + settings</option>
@@ -3349,6 +3400,17 @@ PAGES.users = () => {
               <option value="true">Active</option>
               <option value="false">Disabled</option>
             </select></div>
+        </div>
+
+        <!-- Plant Assignment — only shown for Analyst role -->
+        <div id="plant-assign-section" style="display:none;margin-top:16px">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.15em;color:var(--ink-2);text-transform:uppercase;margin-bottom:10px">
+            PLANT ACCESS — DATA ENTRY ALLOWED ON:
+          </div>
+          <div style="font-size:12px;color:var(--ink-2);margin-bottom:10px">
+            Leave all unchecked = access to <strong>all plants</strong>. Check specific plants to restrict.
+          </div>
+          <div id="plant-assign-list" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
       </div>
       <div class="modal-foot">
@@ -3382,12 +3444,29 @@ POST_RENDER.users = async () => {
   const tbody = container.querySelector('tbody');
   if (!tbody) return;
   if (sortedUsers.length === 0){
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">No users yet — click + New User to add someone</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No users yet — click + New User to add someone</td></tr>';
     return;
   }
   tbody.innerHTML = sortedUsers.map(u => {
     const isSelf = state.user && u.id === state.user.id;
     const last   = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never';
+    // Plant access display
+    let plantCell = '';
+    if (u.role === 'analyst'){
+      const access = u.plantAccess || [];
+      if (access.length === 0){
+        plantCell = `<span style="font-size:11px;color:var(--accent)">All plants</span>`;
+      } else {
+        plantCell = access.map(pid => {
+          const p = state.plants.find(x => x.id === pid);
+          return `<span style="font-family:var(--mono);font-size:10px;background:var(--accent-tint);color:var(--accent);padding:2px 6px;border-radius:4px;white-space:nowrap">${escapeHtml(p?.name || pid)}</span>`;
+        }).join(' ');
+      }
+    } else if (u.role === 'admin' || u.role === 'manager'){
+      plantCell = `<span style="font-size:11px;color:var(--ink-2)">All plants</span>`;
+    } else {
+      plantCell = `<span style="font-size:11px;color:var(--ink-3)">View only</span>`;
+    }
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px">
         <div class="user-avatar-sm" style="background:${u.active?'linear-gradient(135deg,var(--accent),var(--accent-3))':'var(--bg-3)'}">${(u.displayName||u.email||'?').charAt(0).toUpperCase()}</div>
@@ -3396,8 +3475,8 @@ POST_RENDER.users = async () => {
           <div style="font-size:11px;color:var(--ink-2)">${escapeHtml(u.displayName||'—')}</div>
         </div>
       </div></td>
-      <td>${escapeHtml(u.email||'—')}</td>
       <td><span class="tag" style="background:var(--accent-tint);color:var(--accent)">${ROLE_NAMES[u.role]||u.role}</span></td>
+      <td style="max-width:180px">${plantCell}</td>
       <td><span class="tag" style="background:${u.active?'var(--accent-tint)':'rgba(220,38,38,0.10)'};color:${u.active?'var(--accent)':'var(--danger)'}">${u.active?'ACTIVE':'DISABLED'}</span></td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${last}</td>
       <td style="text-align:right;white-space:nowrap">
@@ -3409,6 +3488,37 @@ POST_RENDER.users = async () => {
     </tr>`;
   }).join('');
 };
+
+function updatePlantAssignSection(selectedIds){
+  const role = document.getElementById('user-form-role').value;
+  const section = document.getElementById('plant-assign-section');
+  const list = document.getElementById('plant-assign-list');
+  if (!section || !list) return;
+
+  // Only show for Analyst — Admins/Managers have full access, Viewers have none
+  if (role === 'analyst'){
+    section.style.display = 'block';
+    list.innerHTML = state.plants.map(p => {
+      const checked = selectedIds ? selectedIds.includes(p.id) : false;
+      return `<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="plant-cb-${p.id}" value="${p.id}" ${checked ? 'checked' : ''}
+          style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+        <div>
+          <div style="font-weight:600">${escapeHtml(p.name)}</div>
+          ${p.location ? `<div style="font-size:11px;color:var(--ink-2)">${escapeHtml(p.location)}</div>` : ''}
+        </div>
+        ${p.id === CURRENT_PLANT_ID ? `<span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--accent)">CURRENT</span>` : ''}
+      </label>`;
+    }).join('') || '<div style="color:var(--ink-2);font-size:13px">No plants created yet</div>';
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+function getSelectedPlantIds(){
+  const checkboxes = document.querySelectorAll('#plant-assign-list input[type="checkbox"]');
+  return Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+}
 
 function newUserDialog(){
   document.getElementById('user-dialog-title').textContent = 'Create New User';
@@ -3423,6 +3533,7 @@ function newUserDialog(){
   document.getElementById('user-form-active').value = 'true';
   document.getElementById('user-form-password-field').style.display = '';
   document.getElementById('user-dialog').style.display = 'flex';
+  updatePlantAssignSection([]);
   setTimeout(()=>document.getElementById('user-form-name').focus(), 50);
 }
 function editUserDialog(id){
@@ -3440,6 +3551,7 @@ function editUserDialog(id){
   document.getElementById('user-form-active').value = u.active ? 'true' : 'false';
   document.getElementById('user-form-password-field').style.display = '';
   document.getElementById('user-dialog').style.display = 'flex';
+  updatePlantAssignSection(u.plantAccess || []);
 }
 function closeUserDialog(){
   document.getElementById('user-dialog').style.display = 'none';
@@ -3466,10 +3578,17 @@ async function saveUserDialog(){
       const others = state.users.filter(x => x.id !== id && x.role === 'admin' && x.active).length;
       if (others === 0){ toast('Cannot demote/disable the last admin', 'err'); return; }
     }
-    const updated = { ...u, email, displayName, role, active };
+    const plantAccess = (role === 'analyst') ? getSelectedPlantIds() : [];
+    const updated = { ...u, email, displayName, role, active, plantAccess };
     await saveUserDoc(updated);
     const idx = state.users.findIndex(x => x.id === id);
     if (idx >= 0) state.users[idx] = updated;
+    // Update live session if user edited themselves
+    if (state.user && id === state.user.id){
+      state.user.plantAccess = plantAccess;
+      state.user.role = role;
+      state.user.roleName = ROLE_NAMES[role];
+    }
     if (pw){
       if (pw.length < 6){ toast('Password must be 6+ characters', 'err'); return; }
       fbAuth.sendPasswordResetEmail(email).catch(()=>{});
@@ -3477,38 +3596,30 @@ async function saveUserDialog(){
     } else {
       toast(`User "${email}" updated`);
     }
-    audit('USER_UPDATE', `Updated ${email} — role: ${ROLE_NAMES[role]}, active: ${active}`);
+    const plantDesc = plantAccess.length
+      ? plantAccess.map(pid => state.plants.find(p=>p.id===pid)?.name || pid).join(', ')
+      : 'all plants';
+    audit('USER_UPDATE', `Updated ${email} — role: ${ROLE_NAMES[role]}, plants: ${plantDesc}, active: ${active}`);
 
   } else {
     // ── CREATE NEW USER ─────────────────────────────────────────────
-    // Use a secondary Firebase app instance so admin stays signed in
     if (!pw || pw.length < 6){ toast('Password required, min 6 characters', 'err'); return; }
     if (!displayName){ toast('Display name is required', 'err'); return; }
+    const plantAccess = (role === 'analyst') ? getSelectedPlantIds() : [];
 
     const btn = document.querySelector('#user-dialog .btn-primary');
     btn.textContent = 'CREATING…'; btn.disabled = true;
 
     let secondaryApp = null;
     try {
-      // Create a secondary Firebase app — this signs in the NEW user
-      // there without touching the admin's session in the primary app
       secondaryApp = firebase.initializeApp(FIREBASE_CONFIG, 'secondary_' + Date.now());
       const secondaryAuth = secondaryApp.auth();
-
-      // Create the account in the secondary app
       const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pw);
       const newUid = cred.user.uid;
-
-      // Immediately sign out of secondary app — we only needed the UID
       await secondaryAuth.signOut();
 
-      // Save the Firestore profile using the primary (admin) connection
       const profile = {
-        id: newUid,
-        email,
-        displayName,
-        role,
-        active,
+        id: newUid, email, displayName, role, active, plantAccess,
         createdAt: new Date().toISOString(),
         lastLogin: null,
         createdBy: state.user.email
@@ -3516,8 +3627,11 @@ async function saveUserDialog(){
       await saveUserDoc(profile);
       state.users.push(profile);
 
-      audit('USER_CREATE', `Created user ${email} (${ROLE_NAMES[role]})`);
-      toast(`✓ User "${email}" created successfully`);
+      const plantDesc = plantAccess.length
+        ? plantAccess.map(pid => state.plants.find(p=>p.id===pid)?.name || pid).join(', ')
+        : 'all plants';
+      audit('USER_CREATE', `Created ${email} (${ROLE_NAMES[role]}) — plant access: ${plantDesc}`);
+      toast(`✓ User "${email}" created`);
 
     } catch(e){
       const msgs = {
@@ -3530,10 +3644,7 @@ async function saveUserDialog(){
       btn.textContent = 'SAVE USER'; btn.disabled = false;
       return;
     } finally {
-      // Always clean up the secondary app to avoid "already exists" errors
-      if (secondaryApp){
-        try { await secondaryApp.delete(); } catch(e){}
-      }
+      if (secondaryApp){ try { await secondaryApp.delete(); } catch(e){} }
     }
   }
 
@@ -4009,7 +4120,8 @@ async function bootFirebase(){
       state.user = {
         id: profile.id, email: profile.email,
         displayName: profile.displayName || profile.email,
-        role: profile.role, roleName: ROLE_NAMES[profile.role]
+        role: profile.role, roleName: ROLE_NAMES[profile.role],
+        plantAccess: profile.plantAccess || []   // [] = all plants
       };
 
       // Persist session to localStorage for fast boot indicator
