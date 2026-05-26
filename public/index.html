@@ -582,6 +582,13 @@
     cursor:pointer;font-size:14px;
   }
   .row-del:hover{color:var(--danger)}
+  .row-edit{
+    background:transparent;border:1px solid var(--line);color:var(--ink-2);
+    cursor:pointer;font-size:10px;padding:2px 7px;
+    font-family:var(--mono);letter-spacing:0.05em;margin-right:4px;
+    transition:border-color .1s,color .1s;
+  }
+  .row-edit:hover{border-color:var(--accent);color:var(--accent)}
 
   /* Forms */
   .form-grid{
@@ -1228,6 +1235,7 @@ const EMISSION_FACTORS = {
     'Grid Electricity (UK)': { factor: 0.193, unit: 'kWh', scope: 2 },
     'Solar (Onsite)': { factor: 0.041, unit: 'kWh', scope: 2 },
     'Diesel (DG Set)': { factor: 2.68, unit: 'litre', scope: 1 },
+    'Petrol (Gasoline)': { factor: 2.31, unit: 'litre', scope: 1 },
     'LPG': { factor: 1.51, unit: 'kg', scope: 1 },
     'CNG': { factor: 2.16, unit: 'kg', scope: 1 },
     'PNG (Natural Gas)': { factor: 2.02, unit: 'SCM', scope: 1 },
@@ -1279,6 +1287,7 @@ function fmt(n, digits=2){
 }
 function fmtKg(n){ return fmt(n,1) + ' kg'; }
 function fmtCO2(n){ return fmt(n,1); }
+function fmtTonnes(n){ if(n===undefined||n===null||isNaN(n)) return '—'; return fmt(n/1000,3); }
 function escapeHtml(s){
   if (s===undefined||s===null) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1812,7 +1821,7 @@ PAGES.dashboard = () => {
     <div class="kpi-grid">
       <div class="kpi">
         <div class="kpi-label">Total CO₂e Emissions</div>
-        <div class="kpi-value">${fmtCO2(t.total)}<span class="kpi-unit">kg CO₂e</span></div>
+        <div class="kpi-value">${fmtTonnes(t.total)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">
           <span class="delta ${baselineDelta>0?'neg':''}">${baselineDelta>=0?'+':''}${baselineDelta.toFixed(1)}%</span>
           vs ${state.org.baselineYear} baseline
@@ -1820,17 +1829,17 @@ PAGES.dashboard = () => {
       </div>
       <div class="kpi s1">
         <div class="kpi-label">Scope 1 — Direct</div>
-        <div class="kpi-value">${fmtCO2(t.s1)}<span class="kpi-unit">kg</span></div>
+        <div class="kpi-value">${fmtTonnes(t.s1)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">${t.total>0?((t.s1/t.total)*100).toFixed(1):0}% of total</div>
       </div>
       <div class="kpi s2">
         <div class="kpi-label">Scope 2 — Electricity</div>
-        <div class="kpi-value">${fmtCO2(t.s2)}<span class="kpi-unit">kg</span></div>
+        <div class="kpi-value">${fmtTonnes(t.s2)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">${t.total>0?((t.s2/t.total)*100).toFixed(1):0}% of total</div>
       </div>
       <div class="kpi s3">
         <div class="kpi-label">Scope 3 — Value Chain</div>
-        <div class="kpi-value">${fmtCO2(t.s3)}<span class="kpi-unit">kg</span></div>
+        <div class="kpi-value">${fmtTonnes(t.s3)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">${t.total>0?((t.s3/t.total)*100).toFixed(1):0}% of total</div>
       </div>
       <div class="kpi warn">
@@ -2111,7 +2120,7 @@ PAGES.upstream = () => {
                 <td class="num">${r.recycledPct||0}%</td>
                 <td class="num">${r.factor.toFixed(3)}</td>
                 <td class="num" style="color:var(--accent)">${fmtCO2(r.co2e)}</td>
-                ${canWrite()?`<td><button class="row-del" onclick="deleteRow('upstream','${r.id}')">✕</button></td>`:''}
+                ${canWrite()?`<td><button class="row-edit" onclick="editRow('upstream','${r.id}')">EDIT</button><button class="row-del" onclick="deleteRow('upstream','${r.id}')">✕</button></td>`:''}
               </tr>`).join('') :
               `<tr><td colspan="${canWrite()?8:7}" class="empty">No upstream entries — add raw materials above</td></tr>`}
           </tbody>
@@ -2241,7 +2250,7 @@ PAGES.transport = () => {
                 <td class="num">${r.loadEff||100}%</td>
                 <td class="num">${r.factor.toFixed(3)}</td>
                 <td class="num" style="color:var(--accent)">${fmtCO2(r.co2e)}</td>
-                ${canWrite()?`<td><button class="row-del" onclick="deleteRow('transport','${r.id}')">✕</button></td>`:''}
+                ${canWrite()?`<td><button class="row-edit" onclick="editRow('transport','${r.id}')">EDIT</button><button class="row-del" onclick="deleteRow('transport','${r.id}')">✕</button></td>`:''}
               </tr>`).join('') :
               `<tr><td colspan="${canWrite()?9:8}" class="empty">No shipments logged</td></tr>`}
           </tbody>
@@ -2381,7 +2390,7 @@ PAGES.manufacturing = () => {
                 <td class="num">${r.factor.toFixed(3)}</td>
                 <td><span class="tag s${r.scope}">S${r.scope}</span></td>
                 <td class="num" style="color:var(--accent)">${fmtCO2(r.co2e)}</td>
-                ${canWrite()?`<td><button class="row-del" onclick="deleteRow('manufacturing','${r.id}')">✕</button></td>`:''}
+                ${canWrite()?`<td><button class="row-edit" onclick="editRow('manufacturing','${r.id}')">EDIT</button><button class="row-del" onclick="deleteRow('manufacturing','${r.id}')">✕</button></td>`:''}
               </tr>`).join('') :
               `<tr><td colspan="${canWrite()?9:8}" class="empty">No consumption logged</td></tr>`}
           </tbody>
@@ -2491,7 +2500,7 @@ PAGES.downstream = () => {
                 <td class="num">${fmt(r.quantity)}</td>
                 <td class="num">${r.factor.toFixed(3)}</td>
                 <td class="num" style="color:${r.co2e<0?'var(--accent)':'var(--accent-2)'}">${fmtCO2(r.co2e)}</td>
-                ${canWrite()?`<td><button class="row-del" onclick="deleteRow('downstream','${r.id}')">✕</button></td>`:''}
+                ${canWrite()?`<td><button class="row-edit" onclick="editRow('downstream','${r.id}')">EDIT</button><button class="row-del" onclick="deleteRow('downstream','${r.id}')">✕</button></td>`:''}
               </tr>`).join('') :
               `<tr><td colspan="${canWrite()?7:6}" class="empty">No downstream activities</td></tr>`}
           </tbody>
@@ -2525,9 +2534,156 @@ function deleteRow(section, id){
   if (!confirm('Delete this entry?')) return;
   state[section] = state[section].filter(r => r.id !== id);
   audit('DELETE_'+section.toUpperCase(), id);
-  saveState('downstream');
+  saveState(section);
   renderPage(section);
   toast('Entry deleted');
+}
+
+function editRow(section, id){
+  if (!canWrite()) return;
+  const row = state[section].find(r => r.id === id);
+  if (!row) return;
+
+  // Build modal fields based on section
+  let fields = '';
+  if (section === 'upstream'){
+    const materialOpts = Object.keys(EMISSION_FACTORS.materials).map(m =>
+      `<option value="${m}" ${row.material===m?'selected':''}>${m}</option>`).join('');
+    const countryOpts = Object.keys(EMISSION_FACTORS.countryGrid).map(c =>
+      `<option ${row.country===c?'selected':''}>${c}</option>`).join('');
+    fields = `
+      <div class="form-grid">
+        <div class="field"><label>MATERIAL</label>
+          <select id="edit-material"><option value="">-- select --</option>${materialOpts}</select></div>
+        <div class="field"><label>WEIGHT (KG)</label><input type="number" id="edit-weight" value="${row.weightKg||''}" min="0" step="0.01"></div>
+        <div class="field"><label>SUPPLIER NAME</label><input type="text" id="edit-supplier" value="${escapeHtml(row.supplier||'')}"></div>
+        <div class="field"><label>SUPPLIER COUNTRY</label><select id="edit-country">${countryOpts}</select></div>
+        <div class="field"><label>CATEGORY</label>
+          <select id="edit-category">
+            <option ${row.category==='Raw Material'?'selected':''}>Raw Material</option>
+            <option ${row.category==='Pre-processed'?'selected':''}>Pre-processed</option>
+            <option ${row.category==='Packaging'?'selected':''}>Packaging</option>
+            <option ${row.category==='Component'?'selected':''}>Component</option>
+          </select></div>
+        <div class="field"><label>RECYCLED CONTENT (%)</label><input type="number" id="edit-recycled" value="${row.recycledPct||0}" min="0" max="100"></div>
+        <div class="field"><label>BATCH / PO #</label><input type="text" id="edit-batch" value="${escapeHtml(row.batch||'')}"></div>
+        <div class="field"><label>FACTOR OVERRIDE</label><input type="number" id="edit-factor" value="${row.factorOverride||''}" step="0.001" placeholder="auto"></div>
+      </div>`;
+  } else if (section === 'transport'){
+    const modeOpts = Object.entries(EMISSION_FACTORS.transport)
+      .map(([m])=>`<option value="${m}" ${row.mode===m?'selected':''}>${m}</option>`).join('');
+    const fuelOpts = ['Diesel','Petrol','CNG','Electric','Heavy Fuel Oil','Jet Fuel']
+      .map(f=>`<option ${row.fuel===f?'selected':''}>${f}</option>`).join('');
+    fields = `
+      <div class="form-grid">
+        <div class="field"><label>MATERIAL / SHIPMENT</label><input type="text" id="edit-material" value="${escapeHtml(row.material||'')}"></div>
+        <div class="field"><label>WEIGHT (KG)</label><input type="number" id="edit-weight" value="${row.weightKg||''}" min="0" step="0.01"></div>
+        <div class="field"><label>DISTANCE (KM)</label><input type="number" id="edit-distance" value="${row.distanceKm||''}" min="0"></div>
+        <div class="field"><label>TRANSPORT MODE</label><select id="edit-mode">${modeOpts}</select></div>
+        <div class="field"><label>FUEL TYPE</label><select id="edit-fuel">${fuelOpts}</select></div>
+        <div class="field"><label>LOAD EFFICIENCY (%)</label><input type="number" id="edit-load" value="${row.loadEff||100}" min="10" max="100"></div>
+        <div class="field"><label>ORIGIN</label><input type="text" id="edit-origin" value="${escapeHtml(row.origin||'')}"></div>
+        <div class="field"><label>DESTINATION</label><input type="text" id="edit-dest" value="${escapeHtml(row.dest||'')}"></div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="edit-return" ${row.returnTrip?'checked':''}> RETURN TRIP (×2)</label></div>
+      </div>`;
+  } else if (section === 'manufacturing'){
+    const sourceOpts = Object.entries(EMISSION_FACTORS.manufacturing)
+      .map(([k,v])=>`<option value="${k}" ${row.source===k?'selected':''}>${k} — ${v.factor} kg CO₂e/${v.unit}</option>`).join('');
+    fields = `
+      <div class="form-grid">
+        <div class="field"><label>SOURCE / ACTIVITY</label>
+          <select id="edit-source" onchange="document.getElementById('edit-unit').value=(EMISSION_FACTORS.manufacturing[this.value]||{}).unit||''">${sourceOpts}</select></div>
+        <div class="field"><label>QUANTITY</label><input type="number" id="edit-qty" value="${row.quantity||''}" min="0" step="0.01"></div>
+        <div class="field"><label>UNIT</label><input type="text" id="edit-unit" value="${escapeHtml(row.unit||'')}" readonly></div>
+        <div class="field"><label>MACHINE / DEPT</label><input type="text" id="edit-machine" value="${escapeHtml(row.machine||'')}"></div>
+        <div class="field"><label>PERIOD</label><input type="month" id="edit-period" value="${row.period||''}"></div>
+        <div class="field"><label>NOTES</label><input type="text" id="edit-notes" value="${escapeHtml(row.notes||'')}"></div>
+      </div>`;
+  } else if (section === 'downstream'){
+    const actOpts = Object.entries(EMISSION_FACTORS.downstream)
+      .map(([k])=>`<option value="${k}" ${row.activity===k?'selected':''}>${k}</option>`).join('');
+    fields = `
+      <div class="form-grid">
+        <div class="field"><label>ACTIVITY</label><select id="edit-activity">${actOpts}</select></div>
+        <div class="field"><label>QUANTITY</label><input type="number" id="edit-qty" value="${row.quantity||''}" min="0" step="0.01"></div>
+        <div class="field"><label>LIFECYCLE STAGE</label>
+          <select id="edit-stage">
+            <option ${row.stage==='Distribution'?'selected':''}>Distribution</option>
+            <option ${row.stage==='Warehousing'?'selected':''}>Warehousing</option>
+            <option ${row.stage==='Product Use'?'selected':''}>Product Use</option>
+            <option ${row.stage==='End-of-Life'?'selected':''}>End-of-Life</option>
+          </select></div>
+        <div class="field"><label>REGION / CUSTOMER</label><input type="text" id="edit-region" value="${escapeHtml(row.region||'')}"></div>
+        <div class="field"><label>NOTES</label><input type="text" id="edit-notes" value="${escapeHtml(row.notes||'')}"></div>
+      </div>`;
+  }
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.id = 'edit-modal';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">
+        <div style="font-family:var(--display);font-weight:700;font-size:16px">Edit Entry</div>
+        <button class="btn btn-ghost" onclick="document.getElementById('edit-modal').remove()">✕</button>
+      </div>
+      <div class="modal-body">${fields}</div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="document.getElementById('edit-modal').remove()">CANCEL</button>
+        <button class="btn btn-primary" onclick="saveEdit('${section}','${id}')">SAVE CHANGES</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveEdit(section, id){
+  if (!canWrite()) return;
+  const idx = state[section].findIndex(r => r.id === id);
+  if (idx === -1) return;
+  const row = { ...state[section][idx] };
+
+  if (section === 'upstream'){
+    row.material = document.getElementById('edit-material').value;
+    row.weightKg = parseFloat(document.getElementById('edit-weight').value)||0;
+    row.supplier = document.getElementById('edit-supplier').value.trim();
+    row.country  = document.getElementById('edit-country').value;
+    row.category = document.getElementById('edit-category').value;
+    row.recycledPct = parseFloat(document.getElementById('edit-recycled').value)||0;
+    row.batch    = document.getElementById('edit-batch').value.trim();
+    const fo = parseFloat(document.getElementById('edit-factor').value);
+    row.factorOverride = isNaN(fo) ? null : fo;
+  } else if (section === 'transport'){
+    row.material   = document.getElementById('edit-material').value.trim();
+    row.weightKg   = parseFloat(document.getElementById('edit-weight').value)||0;
+    row.distanceKm = parseFloat(document.getElementById('edit-distance').value)||0;
+    row.mode       = document.getElementById('edit-mode').value;
+    row.fuel       = document.getElementById('edit-fuel').value;
+    row.loadEff    = parseFloat(document.getElementById('edit-load').value)||100;
+    row.origin     = document.getElementById('edit-origin').value.trim();
+    row.dest       = document.getElementById('edit-dest').value.trim();
+    row.returnTrip = document.getElementById('edit-return').checked;
+  } else if (section === 'manufacturing'){
+    row.source   = document.getElementById('edit-source').value;
+    row.quantity = parseFloat(document.getElementById('edit-qty').value)||0;
+    const meta   = EMISSION_FACTORS.manufacturing[row.source];
+    row.unit     = meta?.unit || '';
+    row.machine  = document.getElementById('edit-machine').value.trim();
+    row.period   = document.getElementById('edit-period').value;
+    row.notes    = document.getElementById('edit-notes').value.trim();
+  } else if (section === 'downstream'){
+    row.activity = document.getElementById('edit-activity').value;
+    row.quantity = parseFloat(document.getElementById('edit-qty').value)||0;
+    row.stage    = document.getElementById('edit-stage').value;
+    row.region   = document.getElementById('edit-region').value.trim();
+    row.notes    = document.getElementById('edit-notes').value.trim();
+  }
+
+  state[section][idx] = row;
+  audit('EDIT_'+section.toUpperCase(), id);
+  saveState(section);
+  document.getElementById('edit-modal').remove();
+  renderPage(section);
+  toast('Entry updated');
 }
 
 /* ----- SCOPE ANALYSIS ----- */
@@ -2543,17 +2699,17 @@ PAGES.scopes = () => {
     <div class="kpi-grid">
       <div class="kpi s1">
         <div class="kpi-label">Scope 1 — Direct Emissions</div>
-        <div class="kpi-value">${fmtCO2(t.s1)}<span class="kpi-unit">kg</span></div>
+        <div class="kpi-value">${fmtTonnes(t.s1)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">Fuel combustion, refrigerants, owned vehicles</div>
       </div>
       <div class="kpi s2">
         <div class="kpi-label">Scope 2 — Purchased Energy</div>
-        <div class="kpi-value">${fmtCO2(t.s2)}<span class="kpi-unit">kg</span></div>
+        <div class="kpi-value">${fmtTonnes(t.s2)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">Grid electricity, purchased steam/heat</div>
       </div>
       <div class="kpi s3">
         <div class="kpi-label">Scope 3 — Value Chain</div>
-        <div class="kpi-value">${fmtCO2(t.s3)}<span class="kpi-unit">kg</span></div>
+        <div class="kpi-value">${fmtTonnes(t.s3)}<span class="kpi-unit">t CO₂e</span></div>
         <div class="kpi-meta">Upstream, transport, downstream, EoL</div>
       </div>
     </div>
