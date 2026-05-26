@@ -250,6 +250,29 @@
   }
   .logout-btn:hover{border-color:var(--danger);color:var(--danger)}
 
+  /* ── LICENSE EXPIRY BADGE ── */
+  #license-badge{
+    display:none; /* hidden until checkLicense() runs */
+    align-items:center;
+    gap:5px;
+    padding:5px 12px;
+    border-radius:20px;
+    font-family:var(--mono);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    white-space:nowrap;
+    border:1px solid;
+    cursor:default;
+  }
+  /* States */
+  #license-badge.lb-valid  {background:rgba(34,227,177,0.12);color:var(--accent);border-color:rgba(34,227,177,0.35)}
+  #license-badge.lb-soon   {background:rgba(255,198,71,0.14);color:var(--accent-2);border-color:rgba(255,198,71,0.4);animation:lb-pulse 2s infinite}
+  #license-badge.lb-expired{background:rgba(220,38,38,0.12);color:var(--danger);border-color:rgba(220,38,38,0.35)}
+  #license-badge.lb-revoked{background:rgba(220,38,38,0.12);color:var(--danger);border-color:rgba(220,38,38,0.35)}
+  #license-badge.lb-none   {background:rgba(90,100,118,0.15);color:var(--ink-2);border-color:var(--line)}
+  @keyframes lb-pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
   /* Theme picker */
   .theme-picker{position:relative}
   .theme-btn{
@@ -759,6 +782,8 @@
         <div class="theme-opt" data-theme="paper"    onclick="setTheme('paper')"><span class="sw" style="background:linear-gradient(135deg,#5b52e8,#c2640a)"></span>Paper<span class="sw-tag">LIGHT</span></div>
       </div>
     </div>
+    <!-- License Expiry Badge — visible to admin only, populated by checkLicense() -->
+    <div id="license-badge" title="CarbonOps License Status"></div>
     <div class="user-chip">
       <div class="avatar" id="user-avatar">A</div>
       <div>
@@ -1394,6 +1419,128 @@ function enterApp(){
   renderPage('dashboard');
   startClock();
   subscribeRealtime();
+  checkLicense(); // show license expiry badge for admin users
+}
+
+/* ===================================================================
+   LICENSE EXPIRY BADGE  — reads from carbonops_licenses collection
+   Visible in topbar for admin users only
+=================================================================== */
+async function checkLicense(){
+  // Only admins see the badge
+  if (!state.user || (state.user.role !== 'admin' && state.user.role !== 'superadmin')) return;
+  if (!fbDb) return;
+
+  const badge = document.getElementById('license-badge');
+  if (!badge) return;
+
+  // Show a loading state
+  badge.className = 'lb-none';
+  badge.textContent = '⏳ Checking license…';
+  badge.style.display = 'flex';
+
+  try {
+    // Look for the most recent active license
+    let snap;
+    try {
+      snap = await fbDb.collection('carbonops_licenses')
+        .where('isActive','==',true)
+        .orderBy('expiryDate','desc')
+        .limit(1)
+        .get();
+    } catch(e){
+      // Index not ready — fall back to unordered fetch
+      snap = await fbDb.collection('carbonops_licenses')
+        .where('isActive','==',true)
+        .limit(1)
+        .get();
+    }
+
+    if (snap.empty){
+      // Check if any license exists at all (even revoked)
+      const anySnap = await fbDb.collection('carbonops_licenses').limit(1).get();
+      if (!anySnap.empty){
+        const l = anySnap.docs[0].data();
+        if (!l.isActive){
+          showLicenseBadge('revoked', null, l);
+          return;
+        }
+      }
+      showLicenseBadge('none', null, null);
+      return;
+    }
+
+    const lic  = snap.docs[0].data();
+    const licId = snap.docs[0].id;
+
+    // Parse expiry
+    let exp = null;
+    if (lic.expiryDate){
+      exp = lic.expiryDate?.toDate ? lic.expiryDate.toDate()
+          : new Date(lic.expiryDate);
+    }
+
+    if (!exp){
+      // No expiry set — permanent license
+      showLicenseBadge('valid', null, lic);
+      return;
+    }
+
+    const daysLeft = Math.ceil((exp - new Date()) / 86400000);
+
+    if      (daysLeft < 0)   showLicenseBadge('expired',  daysLeft, lic);
+    else if (daysLeft <= 30) showLicenseBadge('soon',     daysLeft, lic);
+    else                     showLicenseBadge('valid',    daysLeft, lic);
+
+  } catch(e){
+    // Silently hide badge if Firestore is unreachable
+    console.warn('[License] check failed:', e.message);
+    document.getElementById('license-badge').style.display = 'none';
+  }
+}
+
+function showLicenseBadge(status, daysLeft, lic){
+  const badge = document.getElementById('license-badge');
+  if (!badge) return;
+
+  const company = lic?.company ? ` · ${lic.company}` : '';
+  const plan    = lic?.plan    ? ` [${lic.plan.toUpperCase()}]` : '';
+
+  const config = {
+    valid:   {
+      cls:   'lb-valid',
+      label: daysLeft === null
+               ? `✓ License Valid · No Expiry${plan}`
+               : `✓ License Valid · ${daysLeft}d left${plan}`,
+      tip:   `License active${company}${daysLeft !== null ? ` — expires in ${daysLeft} days` : ' — no expiry'}`
+    },
+    soon:    {
+      cls:   'lb-soon',
+      label: `⚠ Expires in ${daysLeft}d${plan}`,
+      tip:   `License expiring soon${company} — please renew`
+    },
+    expired: {
+      cls:   'lb-expired',
+      label: `✕ License Expired${plan}`,
+      tip:   `License expired${company} — contact your developer to renew`
+    },
+    revoked: {
+      cls:   'lb-revoked',
+      label: `✕ License Revoked`,
+      tip:   `License has been revoked — contact your developer`
+    },
+    none:    {
+      cls:   'lb-none',
+      label: `⚫ No License`,
+      tip:   `No active license found — contact your developer`
+    },
+  };
+
+  const { cls, label, tip } = config[status] || config.none;
+  badge.className    = cls;
+  badge.textContent  = label;
+  badge.title        = tip;
+  badge.style.display = 'flex';
 }
 
 function doLogout(){
