@@ -161,20 +161,20 @@
     --scope1-tint:rgba(255,152,70,0.14);
     --scope2-tint:rgba(51,212,255,0.14);
   }
-  /* Cyan — vibrant cyan-blue (#00baf7) dominant, dark base, amber accent */
+  /* Cyan — light theme with vibrant cyan-blue (#00baf7) accent on soft cyan backgrounds */
   [data-theme="cyan"]{
-    --bg-0:#071421; --bg-1:#0c1f33; --bg-2:#142d49; --bg-3:#1d3e63;
-    --line:#264f7d; --line-2:#386898;
-    --ink-0:#f2fbff; --ink-1:#bfdcef; --ink-2:#80a8c8; --ink-3:#54789a;
-    --accent:#00baf7; --accent-ink:#031a23;
-    --accent-2:#ffb84d; --accent-2-ink:#1a1003;
-    --accent-3:#5ad8ff;
-    --danger:#ff5a6b;
-    --scope-1:#ff8a4d; --scope-2:#5ad8ff; --scope-3:#00baf7;
-    --accent-tint:rgba(0,186,247,0.16);
-    --accent-tint-strong:rgba(0,186,247,0.28);
-    --scope1-tint:rgba(255,138,77,0.14);
-    --scope2-tint:rgba(90,216,255,0.14);
+    --bg-0:#e3f6fd; --bg-1:#f4fbfe; --bg-2:#d3eef8; --bg-3:#bce3f3;
+    --line:#9bd0e8; --line-2:#73b9d8;
+    --ink-0:#062236; --ink-1:#0e3a55; --ink-2:#3a6580; --ink-3:#6a8ea4;
+    --accent:#0099d4; --accent-ink:#ffffff;
+    --accent-2:#e07a00; --accent-2-ink:#ffffff;
+    --accent-3:#00baf7;
+    --danger:#c9242b;
+    --scope-1:#e06030; --scope-2:#00baf7; --scope-3:#0099d4;
+    --accent-tint:rgba(0,153,212,0.12);
+    --accent-tint-strong:rgba(0,153,212,0.22);
+    --scope1-tint:rgba(224,96,48,0.10);
+    --scope2-tint:rgba(0,186,247,0.14);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -887,7 +887,7 @@
         <div class="theme-opt" data-theme="sky"      onclick="setTheme('sky')"><span class="sw" style="background:linear-gradient(135deg,#0070cc,#00a8d4,#e07b00)"></span>Sky<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="sage"     onclick="setTheme('sage')"><span class="sw" style="background:linear-gradient(135deg,#0f9450,#0a96b8,#cf7400)"></span>Sage<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="brightblue" onclick="setTheme('brightblue')"><span class="sw" style="background:linear-gradient(135deg,#1e90ff,#33d4ff,#ffb020)"></span>Bright Blue<span class="sw-tag">DARK</span></div>
-        <div class="theme-opt" data-theme="cyan" onclick="setTheme('cyan')"><span class="sw" style="background:linear-gradient(135deg,#00baf7,#5ad8ff,#ffb84d)"></span>Cyan<span class="sw-tag">DARK</span></div>
+        <div class="theme-opt" data-theme="cyan" onclick="setTheme('cyan')"><span class="sw" style="background:linear-gradient(135deg,#00baf7,#5ad8ff,#e07a00)"></span>Cyan<span class="sw-tag">LIGHT</span></div>
       </div>
     </div>
     <!-- License Expiry Badge — visible to admin only, populated by checkLicense() -->
