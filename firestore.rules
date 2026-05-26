@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the request from a signed-in Firebase Auth user?
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    // Helper: does this user have a profile doc with the given role?
+    function hasRole(role) {
+      return isAuthed() &&
+        exists(/databases/$(database)/documents/orgs/main/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/orgs/main/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Helper: is the user active?
+    function isActive() {
+      return isAuthed() &&
+        exists(/databases/$(database)/documents/orgs/main/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/orgs/main/users/$(request.auth.uid)).data.active == true;
+    }
+
+    // Helper: can the user write data (not a viewer)?
+    function canWrite() {
+      let profile = get(/databases/$(database)/documents/orgs/main/users/$(request.auth.uid)).data;
+      return isAuthed() && isActive() && profile.role in ['admin', 'manager', 'analyst'];
+    }
+
+    // ── Org data collections ────────────────────────────────────────
+    match /orgs/{orgId}/data/{doc} {
+      // Any authenticated active user can read
+      allow read: if isAuthed() && isActive();
+      // Only non-viewer roles can write
+      allow write: if canWrite();
+    }
+
+    // ── User profiles ───────────────────────────────────────────────
+    match /orgs/{orgId}/users/{userId} {
+      // Any active user can read user profiles (to show user list)
+      allow read: if isAuthed() && isActive();
+      // Users can update their own profile (e.g. lastLogin)
+      allow update: if isAuthed() && request.auth.uid == userId;
+      // Only admins can create, update others, or delete
+      allow create, delete: if hasRole('admin') && isActive();
+      allow update: if hasRole('admin') && isActive();
+    }
+
+    // ── Audit log ───────────────────────────────────────────────────
+    match /orgs/{orgId}/audit/{entryId} {
+      // Any active user can read audit entries
+      allow read: if isAuthed() && isActive();
+      // Any active user can create audit entries (write-only append)
+      allow create: if isAuthed() && isActive();
+      // Only admins can delete (bulk clear)
+      allow delete: if hasRole('admin') && isActive();
+      // No updates to audit entries — immutable log
+      allow update: if false;
+    }
+
+    // ── Deny everything else ────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
