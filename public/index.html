@@ -710,9 +710,44 @@
     padding:6px 10px;background:var(--bg-2);border:1px solid var(--line);
     color:var(--ink-0);font-size:12px;font-family:var(--sans);
   }
+
+/* ── LICENSE LOCK OVERLAY ── */
+#license-lock{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:radial-gradient(ellipse at 50% 40%, #0a1a18 0%, #08090d 80%);
+  align-items:center;justify-content:center;flex-direction:column;gap:0;
+}
+#license-lock.active{display:flex}
+.ll-card{
+  background:rgba(24,28,40,0.98);border:1px solid rgba(220,38,38,.35);
+  border-radius:20px;padding:44px 48px;width:460px;max-width:95vw;
+  box-shadow:0 32px 80px rgba(0,0,0,.85);position:relative;overflow:hidden;
+  text-align:center;
+}
+.ll-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#dc2626,transparent)}
+.ll-icon{font-size:52px;margin-bottom:16px}
+.ll-title{font-size:22px;font-weight:800;color:#f87171;margin-bottom:8px;letter-spacing:-.4px}
+.ll-sub{font-size:12px;color:#9aa5c0;margin-bottom:20px;letter-spacing:1.2px;text-transform:uppercase}
+.ll-msg{font-size:13px;color:#9aa5c0;line-height:1.8;margin-bottom:24px}
+.ll-detail{background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.2);
+  border-radius:8px;padding:10px 14px;font-size:11px;color:#fca5a5;line-height:1.8;margin-bottom:24px}
+.ll-contact{font-size:12px;color:#5c6680;margin-top:8px}
 </style>
 </head>
 <body>
+
+<!-- ── LICENSE LOCK OVERLAY ── -->
+<div id="license-lock">
+  <div class="ll-card">
+    <div class="ll-icon" id="ll-icon">🔒</div>
+    <div class="ll-title" id="ll-title">License Revoked</div>
+    <div class="ll-sub">CarbonOps — Access Restricted</div>
+    <div class="ll-msg">Your CarbonOps license has been deactivated.<br>All features are currently disabled.</div>
+    <div class="ll-detail" id="ll-detail">Please contact your administrator or developer to reinstate access.</div>
+    <div class="ll-contact">CarbonOps Licensing · contact your system administrator</div>
+  </div>
+</div>
 
 <!-- ============ FIREBASE SETUP (shown once, before first login) ============ -->
 <!-- ============ LOGIN ============ -->
@@ -847,7 +882,7 @@ let fbUnsubscribe = null;
 
 const FB_IS_CONFIGURED = !!(
   FIREBASE_CONFIG.apiKey &&
-  FIREBASE_CONFIG.apiKey !== 'AIzaSyD1Ey-yqHEqLB0NFOAfPND0N0TmwA4a6pE' &&
+  FIREBASE_CONFIG.apiKey !== 'PASTE_YOUR_API_KEY_HERE' &&
   FIREBASE_CONFIG.projectId
 );
 
@@ -1499,6 +1534,18 @@ async function checkLicense(){
   }
 }
 
+function lockApp(title, icon, detail){
+  const overlay = document.getElementById('license-lock');
+  if (!overlay) return;
+  document.getElementById('ll-title').textContent  = title;
+  document.getElementById('ll-icon').textContent   = icon;
+  document.getElementById('ll-detail').textContent = detail;
+  overlay.classList.add('active');
+  // Hide the main app content so nothing is accessible behind the overlay
+  const appEl = document.getElementById('app');
+  if (appEl) appEl.style.pointerEvents = 'none';
+}
+
 function showLicenseBadge(status, daysLeft, lic){
   const badge = document.getElementById('license-badge');
   if (!badge) return;
@@ -1541,6 +1588,27 @@ function showLicenseBadge(status, daysLeft, lic){
   badge.textContent  = label;
   badge.title        = tip;
   badge.style.display = 'flex';
+
+  // ── ENFORCE LICENSE — lock the app for revoked/expired/none ──
+  if (status === 'revoked'){
+    lockApp(
+      'License Revoked',
+      '🔒',
+      `This CarbonOps license has been revoked${company}. All features are disabled. Contact your administrator to restore access.`
+    );
+  } else if (status === 'expired'){
+    lockApp(
+      'License Expired',
+      '⏰',
+      `This license expired ${Math.abs(daysLeft)} day${Math.abs(daysLeft)===1?'':'s'} ago${company}. Please contact your developer to renew.`
+    );
+  } else if (status === 'none'){
+    lockApp(
+      'No Active License',
+      '⚫',
+      'No valid CarbonOps license was found for this installation. Contact your developer to issue a license.'
+    );
+  }
 }
 
 function doLogout(){
