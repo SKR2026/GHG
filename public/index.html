@@ -146,6 +146,21 @@
     --scope1-tint:rgba(208,96,48,0.10);
     --scope2-tint:rgba(10,150,184,0.10);
   }
+  /* Bright Blue — vivid electric blue, high-contrast dark, cyan/amber accents */
+  [data-theme="brightblue"]{
+    --bg-0:#0a1828; --bg-1:#0f2440; --bg-2:#163356; --bg-3:#1f4170;
+    --line:#2b5290; --line-2:#3d68aa;
+    --ink-0:#f4faff; --ink-1:#c5dcf2; --ink-2:#88a8cc; --ink-3:#5a7aa0;
+    --accent:#1e90ff; --accent-ink:#ffffff;
+    --accent-2:#ffb020; --accent-2-ink:#1a1003;
+    --accent-3:#33d4ff;
+    --danger:#ff5a6b;
+    --scope-1:#ff9846; --scope-2:#33d4ff; --scope-3:#1e90ff;
+    --accent-tint:rgba(30,144,255,0.16);
+    --accent-tint-strong:rgba(30,144,255,0.26);
+    --scope1-tint:rgba(255,152,70,0.14);
+    --scope2-tint:rgba(51,212,255,0.14);
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
@@ -812,7 +827,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">C</div>
-      <div class="brand-text">CARBONOPS<span>GHG / v1.0</span></div>
+      <div class="brand-text">CARBON FOOTPRINTS<span>GHG / v1.0</span></div>
     </div>
     <div class="topbar-status">
       <span><span class="status-dot"></span>SYSTEM OPERATIONAL</span>
@@ -854,6 +869,7 @@
         <div class="theme-opt" data-theme="paper"    onclick="setTheme('paper')"><span class="sw" style="background:linear-gradient(135deg,#5b52e8,#c2640a)"></span>Paper<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="sky"      onclick="setTheme('sky')"><span class="sw" style="background:linear-gradient(135deg,#0070cc,#00a8d4,#e07b00)"></span>Sky<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="sage"     onclick="setTheme('sage')"><span class="sw" style="background:linear-gradient(135deg,#0f9450,#0a96b8,#cf7400)"></span>Sage<span class="sw-tag">LIGHT</span></div>
+        <div class="theme-opt" data-theme="brightblue" onclick="setTheme('brightblue')"><span class="sw" style="background:linear-gradient(135deg,#1e90ff,#33d4ff,#ffb020)"></span>Bright Blue<span class="sw-tag">DARK</span></div>
       </div>
     </div>
     <!-- License Expiry Badge — visible to admin only, populated by checkLicense() -->
@@ -1281,13 +1297,13 @@ function getFactor(category, key){
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function fmt(n, digits=2){
   if (n === undefined || n === null || isNaN(n)) return '—';
-  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1)+'M';
-  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1)+'k';
+  if (Math.abs(n) >= 1e6) return Math.round(n/1e6)+'M';
+  if (Math.abs(n) >= 1e3) return Math.round(n/1e3)+'k';
   return Number(n).toLocaleString(undefined,{maximumFractionDigits:digits});
 }
-function fmtKg(n){ return fmt(n,1) + ' kg'; }
-function fmtCO2(n){ return fmt(n,1); }
-function fmtTonnes(n){ if(n===undefined||n===null||isNaN(n)) return '—'; return fmt(n/1000,3); }
+function fmtKg(n){ return fmt(n,0) + ' kg'; }
+function fmtCO2(n){ return fmt(n,0); }
+function fmtTonnes(n){ if(n===undefined||n===null||isNaN(n)) return '—'; return fmt(n/1000,0); }
 function escapeHtml(s){
   if (s===undefined||s===null) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1688,7 +1704,7 @@ function canAdmin(){
 const THEME_NAMES = {
   midnight:'Midnight', carbon:'Carbon', forest:'Forest',
   aurora:'Aurora',     solar:'Solar',   paper:'Paper',
-  sky:'Sky',           sage:'Sage'
+  sky:'Sky',           sage:'Sage',     brightblue:'Bright Blue'
 };
 function applyTheme(name){
   if (!THEME_NAMES[name]) name = 'midnight';
