@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CARBONOPS — GHG Emission Calculator</title>
+<title>CARBON FOOTPRINTS — GHG Emission Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -790,7 +790,7 @@
 <!-- ============ LOGIN ============ -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-brand">CARBONOPS / GHG PLATFORM</div>
+    <div class="login-brand">CARBON FOOTPRINTS / GHG PLATFORM</div>
     <div class="login-title">Sign in</div>
     <div class="login-sub">Manufacturing emissions intelligence</div>
     <label>EMAIL</label>
@@ -812,7 +812,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">C</div>
-      <div class="brand-text">CARBONOPS<span>GHG / v1.0</span></div>
+      <div class="brand-text">CARBON FOOTPRINTS<span>GHG / v1.0</span></div>
     </div>
     <div class="topbar-status">
       <span><span class="status-dot"></span>SYSTEM OPERATIONAL</span>
@@ -952,7 +952,7 @@ function showNotConfigured(){
         padding:40px;max-width:520px;width:100%;text-align:center;
       ">
         <div style="font-size:48px;margin-bottom:16px">⚙️</div>
-        <div style="color:#22e3b1;font-size:12px;letter-spacing:0.2em;font-family:monospace;margin-bottom:8px">CARBONOPS — ADMIN SETUP REQUIRED</div>
+        <div style="color:#22e3b1;font-size:12px;letter-spacing:0.2em;font-family:monospace;margin-bottom:8px">CARBON FOOTPRINTS — ADMIN SETUP REQUIRED</div>
         <h2 style="color:#f5f9ff;font-size:22px;font-weight:700;margin-bottom:12px">Firebase not configured</h2>
         <p style="color:#8593a8;line-height:1.7;font-size:14px;margin-bottom:24px">
           This app needs a Firebase project to store data.<br>
@@ -1809,7 +1809,7 @@ PAGES.dashboard = () => {
     <div class="page-header">
       <div>
         <div class="page-title">Emissions Overview</div>
-        <div class="page-sub">CARBONOPS / DASHBOARD / LIVE</div>
+        <div class="page-sub">CARBON FOOTPRINTS / DASHBOARD / LIVE</div>
       </div>
       <div class="page-actions">
         <button class="btn" onclick="exportAllExcel()">⬇ EXCEL</button>
@@ -4356,7 +4356,7 @@ function exportPDF(){
   doc.setTextColor(0,212,170);
   doc.setFont('helvetica','bold');
   doc.setFontSize(20);
-  doc.text('CARBONOPS', margin, 35);
+  doc.text('CARBON FOOTPRINTS', margin, 35);
   doc.setTextColor(168,179,193);
   doc.setFontSize(9);
   doc.setFont('helvetica','normal');
@@ -4449,7 +4449,7 @@ function exportPDF(){
   for (let i=1; i<=pageCount; i++){
     doc.setPage(i);
     doc.setFontSize(7); doc.setTextColor(150,150,150);
-    doc.text(`CARBONOPS GHG Platform · Page ${i}/${pageCount} · Generated ${new Date().toISOString().slice(0,10)} by ${state.user?.name||'system'}`, margin, 820);
+    doc.text(`CARBON FOOTPRINTS GHG Platform · Page ${i}/${pageCount} · Generated ${new Date().toISOString().slice(0,10)} by ${state.user?.name||'system'}`, margin, 820);
   }
 
   doc.save(`carbonops-report-${new Date().toISOString().slice(0,10)}.pdf`);
