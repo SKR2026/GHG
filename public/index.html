@@ -735,12 +735,12 @@
    ─────────────────────────────────────────────────────────────
 =================================================================== */
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyD1Ey-yqHEqLB0NFOAfPND0N0TmwA4a6pE",
-  authDomain:        "skr-msa.firebaseapp.com",
-  projectId:         "skr-msa",
-  storageBucket:     "skr-msa.firebasestorage.app",
-  messagingSenderId: "957782831083",
-  appId:             "1:957782831083:web:487ee047499c6ed598b3ae"
+  apiKey:            "PASTE_YOUR_API_KEY_HERE",
+  authDomain:        "your-project-id.firebaseapp.com",
+  projectId:         "your-project-id",
+  storageBucket:     "your-project-id.appspot.com",
+  messagingSenderId: "000000000000",
+  appId:             "1:000000000000:web:000000000000000000000000"
 };
 
 /* ===================================================================
@@ -3013,12 +3013,12 @@ function closeUserDialog(){
   document.getElementById('user-dialog').style.display = 'none';
 }
 async function saveUserDialog(){
-  const id      = document.getElementById('user-edit-id').value;
-  const email   = document.getElementById('user-form-email').value.trim();
+  const id          = document.getElementById('user-edit-id').value;
+  const email       = document.getElementById('user-form-email').value.trim();
   const displayName = document.getElementById('user-form-name').value.trim();
-  const role    = document.getElementById('user-form-role').value;
-  const pw      = document.getElementById('user-form-password').value;
-  const active  = document.getElementById('user-form-active').value === 'true';
+  const role        = document.getElementById('user-form-role').value;
+  const pw          = document.getElementById('user-form-password').value;
+  const active      = document.getElementById('user-form-active').value === 'true';
 
   if (!email){ toast('Email is required', 'err'); return; }
   if (!/\S+@\S+\.\S+/.test(email)){ toast('Enter a valid email address', 'err'); return; }
@@ -3027,7 +3027,7 @@ async function saveUserDialog(){
   if (dupEmail){ toast('Email already in use', 'err'); return; }
 
   if (id){
-    // Edit existing profile in Firestore
+    // ── EDIT EXISTING USER ──────────────────────────────────────────
     const u = state.users.find(x => x.id === id);
     if (!u){ toast('User not found', 'err'); return; }
     if (u.role === 'admin' && (role !== 'admin' || !active)){
@@ -3036,48 +3036,75 @@ async function saveUserDialog(){
     }
     const updated = { ...u, email, displayName, role, active };
     await saveUserDoc(updated);
-    // Sync local cache
     const idx = state.users.findIndex(x => x.id === id);
     if (idx >= 0) state.users[idx] = updated;
     if (pw){
       if (pw.length < 6){ toast('Password must be 6+ characters', 'err'); return; }
-      // Admin SDK would be needed for server-side password change.
-      // Best approach: send a password-reset email so the user sets it themselves.
-      toast('Password changes are done via "Forgot password" link — a reset email has been sent.', 'warn');
       fbAuth.sendPasswordResetEmail(email).catch(()=>{});
+      toast('Profile updated. Password reset email sent to user.', 'warn');
+    } else {
+      toast(`User "${email}" updated`);
     }
-    audit('USER_UPDATE', `Updated user ${email} (role: ${ROLE_NAMES[role]}, active: ${active})`);
-    toast(`User "${email}" updated`);
+    audit('USER_UPDATE', `Updated ${email} — role: ${ROLE_NAMES[role]}, active: ${active}`);
+
   } else {
-    // Create new — Firebase Auth + Firestore profile
+    // ── CREATE NEW USER ─────────────────────────────────────────────
+    // Use a secondary Firebase app instance so admin stays signed in
     if (!pw || pw.length < 6){ toast('Password required, min 6 characters', 'err'); return; }
+    if (!displayName){ toast('Display name is required', 'err'); return; }
+
     const btn = document.querySelector('#user-dialog .btn-primary');
     btn.textContent = 'CREATING…'; btn.disabled = true;
+
+    let secondaryApp = null;
     try {
-      const cred = await fbAuth.createUserWithEmailAndPassword(email, pw);
+      // Create a secondary Firebase app — this signs in the NEW user
+      // there without touching the admin's session in the primary app
+      secondaryApp = firebase.initializeApp(FIREBASE_CONFIG, 'secondary_' + Date.now());
+      const secondaryAuth = secondaryApp.auth();
+
+      // Create the account in the secondary app
+      const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pw);
+      const newUid = cred.user.uid;
+
+      // Immediately sign out of secondary app — we only needed the UID
+      await secondaryAuth.signOut();
+
+      // Save the Firestore profile using the primary (admin) connection
       const profile = {
-        id: cred.user.uid, email, displayName, role, active,
-        createdAt: new Date().toISOString(), lastLogin: null,
+        id: newUid,
+        email,
+        displayName,
+        role,
+        active,
+        createdAt: new Date().toISOString(),
+        lastLogin: null,
         createdBy: state.user.email
       };
       await saveUserDoc(profile);
       state.users.push(profile);
-      // Sign back in as ourselves (createUser auto-signs in as new user)
-      // We need to re-auth the current admin — use the current session token
-      // Firebase doesn't sign you out on createUser in admin flow, but let's be safe:
+
       audit('USER_CREATE', `Created user ${email} (${ROLE_NAMES[role]})`);
-      toast(`User "${email}" created`);
+      toast(`✓ User "${email}" created successfully`);
+
     } catch(e){
       const msgs = {
         'auth/email-already-in-use': 'That email is already registered.',
-        'auth/weak-password': 'Password is too weak (min 6 characters).',
-        'auth/invalid-email': 'Invalid email address.',
+        'auth/weak-password':        'Password too weak — use min 6 characters.',
+        'auth/invalid-email':        'Invalid email address format.',
+        'auth/operation-not-allowed':'Email/password sign-in is not enabled in Firebase.',
       };
       toast(msgs[e.code] || e.message, 'err');
       btn.textContent = 'SAVE USER'; btn.disabled = false;
       return;
+    } finally {
+      // Always clean up the secondary app to avoid "already exists" errors
+      if (secondaryApp){
+        try { await secondaryApp.delete(); } catch(e){}
+      }
     }
   }
+
   closeUserDialog();
   renderPage('users');
 }
