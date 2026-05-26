@@ -161,6 +161,21 @@
     --scope1-tint:rgba(255,152,70,0.14);
     --scope2-tint:rgba(51,212,255,0.14);
   }
+  /* Cyan — vibrant cyan-blue (#00baf7) dominant, dark base, amber accent */
+  [data-theme="cyan"]{
+    --bg-0:#071421; --bg-1:#0c1f33; --bg-2:#142d49; --bg-3:#1d3e63;
+    --line:#264f7d; --line-2:#386898;
+    --ink-0:#f2fbff; --ink-1:#bfdcef; --ink-2:#80a8c8; --ink-3:#54789a;
+    --accent:#00baf7; --accent-ink:#031a23;
+    --accent-2:#ffb84d; --accent-2-ink:#1a1003;
+    --accent-3:#5ad8ff;
+    --danger:#ff5a6b;
+    --scope-1:#ff8a4d; --scope-2:#5ad8ff; --scope-3:#00baf7;
+    --accent-tint:rgba(0,186,247,0.16);
+    --accent-tint-strong:rgba(0,186,247,0.28);
+    --scope1-tint:rgba(255,138,77,0.14);
+    --scope2-tint:rgba(90,216,255,0.14);
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
@@ -252,6 +267,7 @@
   .brand{
     display:flex;align-items:center;gap:10px;
     font-family:var(--display);font-weight:700;letter-spacing:-0.02em;
+    flex-shrink:0;
   }
   .brand-mark{
     width:30px;height:30px;
@@ -260,9 +276,10 @@
     font-family:var(--display);font-size:16px;font-weight:700;color:var(--accent-ink);
     border-radius:6px;
     box-shadow:0 2px 8px var(--accent-tint-strong);
+    flex-shrink:0;
   }
-  .brand-text{font-size:16px}
-  .brand-text span{color:var(--ink-2);font-weight:400;margin-left:8px;font-size:10.5px;letter-spacing:0.18em;font-family:var(--mono)}
+  .brand-text{font-size:15px;white-space:nowrap}
+  .brand-text span{color:var(--ink-2);font-weight:400;margin-left:8px;font-size:10.5px;letter-spacing:0.18em;font-family:var(--mono);white-space:nowrap}
   .topbar-status{
     margin-left:auto;display:flex;align-items:center;gap:20px;
     font-family:var(--mono);font-size:11px;color:var(--ink-2);
@@ -870,6 +887,7 @@
         <div class="theme-opt" data-theme="sky"      onclick="setTheme('sky')"><span class="sw" style="background:linear-gradient(135deg,#0070cc,#00a8d4,#e07b00)"></span>Sky<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="sage"     onclick="setTheme('sage')"><span class="sw" style="background:linear-gradient(135deg,#0f9450,#0a96b8,#cf7400)"></span>Sage<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="brightblue" onclick="setTheme('brightblue')"><span class="sw" style="background:linear-gradient(135deg,#1e90ff,#33d4ff,#ffb020)"></span>Bright Blue<span class="sw-tag">DARK</span></div>
+        <div class="theme-opt" data-theme="cyan" onclick="setTheme('cyan')"><span class="sw" style="background:linear-gradient(135deg,#00baf7,#5ad8ff,#ffb84d)"></span>Cyan<span class="sw-tag">DARK</span></div>
       </div>
     </div>
     <!-- License Expiry Badge — visible to admin only, populated by checkLicense() -->
@@ -1704,7 +1722,8 @@ function canAdmin(){
 const THEME_NAMES = {
   midnight:'Midnight', carbon:'Carbon', forest:'Forest',
   aurora:'Aurora',     solar:'Solar',   paper:'Paper',
-  sky:'Sky',           sage:'Sage',     brightblue:'Bright Blue'
+  sky:'Sky',           sage:'Sage',     brightblue:'Bright Blue',
+  cyan:'Cyan'
 };
 function applyTheme(name){
   if (!THEME_NAMES[name]) name = 'midnight';
