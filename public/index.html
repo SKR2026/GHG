@@ -291,6 +291,53 @@
     padding:2px 5px;border:1px solid var(--line);
   }
 
+  /* Plant Switcher */
+  .plant-switcher{position:relative}
+  .plant-switcher-btn{
+    display:flex;align-items:center;gap:8px;
+    background:var(--bg-2);border:1px solid var(--line);
+    color:var(--ink-1);padding:6px 10px;cursor:pointer;
+    font-family:var(--mono);font-size:10px;letter-spacing:0.08em;
+    text-transform:uppercase;border-radius:6px;
+    max-width:180px;
+  }
+  .plant-switcher-btn:hover{border-color:var(--accent);color:var(--ink-0)}
+  .plant-icon{
+    width:18px;height:18px;border-radius:4px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-3));
+    display:grid;place-items:center;font-size:10px;flex-shrink:0;
+  }
+  .plant-name{
+    max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .plant-menu{
+    display:none;position:absolute;top:calc(100% + 6px);left:0;
+    background:var(--bg-1);border:1px solid var(--line);
+    min-width:220px;z-index:100;border-radius:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);overflow:hidden;
+  }
+  .plant-menu.open{display:block}
+  .plant-menu-head{
+    padding:10px 14px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:10px;color:var(--ink-2);
+    letter-spacing:0.12em;text-transform:uppercase;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .plant-opt{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+    cursor:pointer;font-size:13px;color:var(--ink-1);
+    border-bottom:1px solid var(--line);transition:background .1s;
+  }
+  .plant-opt:last-child{border-bottom:none}
+  .plant-opt:hover{background:var(--bg-2);color:var(--ink-0)}
+  .plant-opt.active{background:var(--bg-2);color:var(--accent)}
+  .plant-dot{
+    width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  }
+  .plant-menu-foot{
+    padding:8px 14px;border-top:1px solid var(--line);
+  }
+
   /* Sidebar */
   .sidebar{
     background:var(--bg-1);
@@ -656,6 +703,26 @@
       <span id="topbar-clock"></span>
       <span>ORG: <span id="org-name" style="color:var(--ink-0)">ACME MFG PVT LTD</span></span>
     </div>
+
+    <!-- Plant Switcher -->
+    <div class="plant-switcher" id="plant-switcher">
+      <button class="plant-switcher-btn" id="plant-switcher-btn" onclick="togglePlantMenu(event)">
+        <div class="plant-icon">🏭</div>
+        <span class="plant-name">Loading…</span>
+        <span style="font-size:9px;opacity:0.6">▼</span>
+      </button>
+      <div class="plant-menu" id="plant-switcher-list-wrap">
+        <div class="plant-menu-head">
+          <span>SELECT PLANT</span>
+        </div>
+        <div id="plant-switcher-list"></div>
+        <div class="plant-menu-foot">
+          <button class="btn btn-sm" style="width:100%;justify-content:center" onclick="renderPage('plants');closePlantMenu()">
+            ⚙ Manage Plants
+          </button>
+        </div>
+      </div>
+    </div>
     <div class="theme-picker" title="Theme">
       <button class="theme-btn" id="theme-btn" onclick="toggleThemeMenu(event)">
         <span class="theme-swatch"></span>
@@ -706,6 +773,7 @@
       <div class="nav-item" data-page="reports"><span class="nav-icon">⎙</span> ESG Reports</div>
       <div class="nav-item" data-page="factors"><span class="nav-icon">∑</span> Emission Factors</div>
       <div class="nav-item" data-page="audit"><span class="nav-icon">≡</span> Audit Trail</div>
+      <div class="nav-item nav-admin" data-page="plants"><span class="nav-icon">🏭</span> Plant Management</div>
       <div class="nav-item nav-admin" data-page="users"><span class="nav-icon">⚇</span> User Management</div>
       <div class="nav-item" data-page="settings"><span class="nav-icon">✦</span> Settings</div>
     </div>
@@ -793,12 +861,92 @@ function showNotConfigured(){
    Users (profiles) live at:  orgs/{orgId}/users/{uid}
    Audit entries:             orgs/{orgId}/audit/{entryId}
 =================================================================== */
-const ORG_ID = 'main'; // single-org app; extend later for multi-tenant
+/* Active plant ID — all Firestore paths use this */
+let CURRENT_PLANT_ID = 'main'; // default, updated when user switches plant
 
-function orgRef()   { return fbDb.collection('orgs').doc(ORG_ID); }
+function orgRef()    { return fbDb.collection('orgs').doc(CURRENT_PLANT_ID); }
 function dataRef(col){ return orgRef().collection('data').doc(col); }
-function usersCol() { return orgRef().collection('users'); }
-function auditCol() { return orgRef().collection('audit'); }
+function usersCol()  { return fbDb.collection('orgs').doc('main').collection('users'); }  // users are global
+function auditCol()  { return orgRef().collection('audit'); }
+function plantsCol() { return fbDb.collection('plants'); }
+
+/* ===================================================================
+   PLANT MANAGEMENT
+=================================================================== */
+async function loadPlants(){
+  if (!fbDb) return;
+  try {
+    const snap = await plantsCol().orderBy('createdAt','asc').get();
+    state.plants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e){
+    // orderBy may fail if index not ready — fall back to unordered
+    try {
+      const snap = await plantsCol().get();
+      state.plants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e2){ console.error('loadPlants:', e2); }
+  }
+}
+
+async function seedDefaultPlantIfEmpty(){
+  if (!fbDb) return;
+  try {
+    const snap = await plantsCol().limit(1).get();
+    if (!snap.empty) return;
+    // Create the default "Main Plant"
+    await plantsCol().doc('main').set({
+      id: 'main',
+      name: 'Main Plant',
+      location: '',
+      active: true,
+      createdAt: new Date().toISOString(),
+      createdBy: 'system'
+    });
+  } catch(e){ console.error('seedPlant:', e); }
+}
+
+async function switchPlant(plantId){
+  const plant = state.plants.find(p => p.id === plantId);
+  if (!plant) return;
+  // Stop current realtime listener
+  if (fbUnsubscribe){ fbUnsubscribe(); fbUnsubscribe = null; }
+  // Switch plant
+  CURRENT_PLANT_ID = plantId;
+  state.currentPlant = plant;
+  // Persist plant choice
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    s.currentPlantId = plantId;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch(e){}
+  // Load new plant's data
+  await loadState();
+  // Update UI
+  updatePlantSwitcher();
+  updateBadges();
+  audit('SWITCH_PLANT', `Switched to plant: ${plant.name}`);
+  renderPage('dashboard');
+  subscribeRealtime();
+  toast(`Switched to ${plant.name}`);
+}
+
+function updatePlantSwitcher(){
+  const btn = document.getElementById('plant-switcher-btn');
+  const list = document.getElementById('plant-switcher-list');
+  if (!btn || !list) return;
+  const cp = state.currentPlant;
+  btn.querySelector('.plant-name').textContent = cp ? cp.name : 'Select Plant';
+  list.innerHTML = state.plants.filter(p => p.active).map(p => `
+    <div class="plant-opt ${p.id === CURRENT_PLANT_ID ? 'active' : ''}"
+         onclick="switchPlant('${p.id}')">
+      <span class="plant-dot" style="background:${p.id === CURRENT_PLANT_ID ? 'var(--accent)' : 'var(--ink-3)'}"></span>
+      <div>
+        <div style="font-weight:600;font-size:12px">${escapeHtml(p.name)}</div>
+        ${p.location ? `<div style="font-size:10px;color:var(--ink-2)">${escapeHtml(p.location)}</div>` : ''}
+      </div>
+      ${p.id === CURRENT_PLANT_ID ? '<span style="margin-left:auto;color:var(--accent);font-size:10px">ACTIVE</span>' : ''}
+    </div>`).join('') ||
+    '<div style="padding:12px;font-size:12px;color:var(--ink-2)">No plants yet</div>';
+}
 
 /* ===================================================================
    STATE — now a reactive in-memory cache of Firestore data
@@ -809,6 +957,8 @@ const DEFAULT_STATE = {
   org: { name: 'ACME MFG PVT LTD', country: 'India', netZeroYear: 2045, baselineYear: 2024, baselineCO2e: 12500 },
   user: null,
   users: [],
+  plants: [],        // list of all plants
+  currentPlant: null, // { id, name, location }
   theme: 'midnight',
   upstream: [],
   transport: [],
@@ -1219,6 +1369,7 @@ function enterApp(){
   document.getElementById('user-avatar').textContent = (state.user.displayName || state.user.email || '?').charAt(0).toUpperCase();
   document.getElementById('org-name').textContent   = state.org.name;
   document.body.classList.toggle('is-admin', state.user.role === 'admin');
+  updatePlantSwitcher();
   renderPage('dashboard');
   startClock();
   subscribeRealtime();
@@ -1269,10 +1420,22 @@ function toggleThemeMenu(e){
   e.stopPropagation();
   document.getElementById('theme-menu').classList.toggle('open');
 }
+function togglePlantMenu(e){
+  e.stopPropagation();
+  updatePlantSwitcher();
+  document.getElementById('plant-switcher-list-wrap').classList.toggle('open');
+}
+function closePlantMenu(){
+  document.getElementById('plant-switcher-list-wrap').classList.remove('open');
+}
 document.addEventListener('click', e => {
-  const menu = document.getElementById('theme-menu');
-  if (menu && menu.classList.contains('open') && !e.target.closest('.theme-picker')){
-    menu.classList.remove('open');
+  const themeMenu = document.getElementById('theme-menu');
+  if (themeMenu && themeMenu.classList.contains('open') && !e.target.closest('.theme-picker')){
+    themeMenu.classList.remove('open');
+  }
+  const plantMenu = document.getElementById('plant-switcher-list-wrap');
+  if (plantMenu && plantMenu.classList.contains('open') && !e.target.closest('.plant-switcher')){
+    plantMenu.classList.remove('open');
   }
 });
 
@@ -2843,6 +3006,212 @@ function saveProductSettings(){
 /* ===================================================================
    USER MANAGEMENT PAGE
 =================================================================== */
+/* ===================================================================
+   PLANT MANAGEMENT PAGE
+=================================================================== */
+PAGES.plants = () => {
+  if (!canAdmin()) return `<div class="page-header"><div class="page-title">Access Denied</div></div>`;
+  const rows = state.plants.map(p => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:8px;background:${p.id === CURRENT_PLANT_ID ? 'linear-gradient(135deg,var(--accent),var(--accent-3))' : 'var(--bg-3)'};display:grid;place-items:center;font-size:16px">🏭</div>
+          <div>
+            <div style="font-weight:600">${escapeHtml(p.name)}${p.id === CURRENT_PLANT_ID ? ' <span style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:0.1em">ACTIVE</span>' : ''}</div>
+            <div style="font-size:11px;color:var(--ink-2);font-family:var(--mono)">${escapeHtml(p.id)}</div>
+          </div>
+        </div>
+      </td>
+      <td>${escapeHtml(p.location || '—')}</td>
+      <td><span class="tag" style="background:${p.active ? 'var(--accent-tint)' : 'rgba(220,38,38,0.10)'};color:${p.active ? 'var(--accent)' : 'var(--danger)'}">${p.active ? 'ACTIVE' : 'DISABLED'}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${new Date(p.createdAt).toLocaleDateString()}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm btn-primary" onclick="switchPlant('${p.id}');closePlantMenu()" title="Switch to this plant">⇄ Switch</button>
+        <button class="btn btn-sm" onclick="editPlantDialog('${p.id}')" title="Edit">✎</button>
+        <button class="btn btn-sm ${p.active ? 'btn-warn' : ''}" onclick="togglePlantActive('${p.id}')">${p.active ? '⏻ Disable' : '✓ Enable'}</button>
+        ${p.id !== 'main' ? `<button class="btn btn-sm btn-danger" onclick="deletePlant('${p.id}')" title="Delete">✕</button>` : ''}
+      </td>
+    </tr>`).join('');
+
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">Plant Management</div>
+      <div class="page-sub">FACILITIES · SEPARATE DATA PER PLANT</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="newPlantDialog()">+ ADD PLANT</button>
+    </div>
+  </div>
+
+  <div class="callout tip" style="margin-bottom:20px">
+    <div class="callout-icon">💡</div>
+    <div>
+      <strong>Each plant has completely separate data</strong>
+      <p>Upstream, transport, manufacturing and downstream entries are stored independently per plant. Switch between plants using the dropdown in the topbar. All users share access to all plants.</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Plants</div><div class="kpi-value">${state.plants.length}</div></div>
+    <div class="kpi s3"><div class="kpi-label">Active Plants</div><div class="kpi-value">${state.plants.filter(p=>p.active).length}</div></div>
+    <div class="kpi s2"><div class="kpi-label">Current Plant</div><div class="kpi-value" style="font-size:18px">${escapeHtml(state.currentPlant?.name || '—')}</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><div class="card-title">All Plants / Facilities</div></div>
+    </div>
+    <div class="card-body tight">
+      <table class="data">
+        <thead><tr><th>Plant</th><th>Location</th><th>Status</th><th>Created</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="5" class="empty">No plants yet</td></tr>'}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Plant Dialog -->
+  <div id="plant-dialog" class="modal-backdrop" style="display:none">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="card-title" id="plant-dialog-title">Add New Plant</div>
+        <button class="btn btn-sm btn-ghost" onclick="closePlantDialog()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="plant-edit-id" value="">
+        <div class="form-grid">
+          <div class="field"><label>PLANT NAME *</label>
+            <input type="text" id="plant-form-name" placeholder="e.g. Mumbai Plant, Unit 2"></div>
+          <div class="field"><label>LOCATION</label>
+            <input type="text" id="plant-form-location" placeholder="e.g. Mumbai, Maharashtra"></div>
+          <div class="field"><label>STATUS</label>
+            <select id="plant-form-active">
+              <option value="true">Active</option>
+              <option value="false">Disabled</option>
+            </select></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closePlantDialog()">CANCEL</button>
+        <button class="btn btn-primary" onclick="savePlantDialog()">SAVE PLANT</button>
+      </div>
+    </div>
+  </div>
+  `;
+};
+
+POST_RENDER.plants = async () => {
+  await loadPlants();
+  renderPage('plants');
+};
+
+function newPlantDialog(){
+  document.getElementById('plant-dialog-title').textContent = 'Add New Plant';
+  document.getElementById('plant-edit-id').value = '';
+  document.getElementById('plant-form-name').value = '';
+  document.getElementById('plant-form-location').value = '';
+  document.getElementById('plant-form-active').value = 'true';
+  document.getElementById('plant-dialog').style.display = 'flex';
+  setTimeout(()=>document.getElementById('plant-form-name').focus(), 50);
+}
+function editPlantDialog(id){
+  const p = state.plants.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('plant-dialog-title').textContent = `Edit Plant: ${p.name}`;
+  document.getElementById('plant-edit-id').value = id;
+  document.getElementById('plant-form-name').value = p.name;
+  document.getElementById('plant-form-location').value = p.location || '';
+  document.getElementById('plant-form-active').value = p.active ? 'true' : 'false';
+  document.getElementById('plant-dialog').style.display = 'flex';
+}
+function closePlantDialog(){
+  document.getElementById('plant-dialog').style.display = 'none';
+}
+async function savePlantDialog(){
+  const id     = document.getElementById('plant-edit-id').value;
+  const name   = document.getElementById('plant-form-name').value.trim();
+  const location = document.getElementById('plant-form-location').value.trim();
+  const active = document.getElementById('plant-form-active').value === 'true';
+
+  if (!name){ toast('Plant name is required', 'err'); return; }
+
+  if (id){
+    // Edit existing
+    const updated = { ...state.plants.find(p => p.id === id), name, location, active };
+    await plantsCol().doc(id).set(updated);
+    const idx = state.plants.findIndex(p => p.id === id);
+    if (idx >= 0) state.plants[idx] = updated;
+    if (id === CURRENT_PLANT_ID) state.currentPlant = updated;
+    audit('PLANT_UPDATE', `Updated plant: ${name}`);
+    toast(`Plant "${name}" updated`);
+  } else {
+    // Create new — generate a clean ID from the name
+    const newId = 'plant_' + name.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').slice(0,20) + '_' + Date.now().toString(36);
+    const plant = {
+      id: newId, name, location, active,
+      createdAt: new Date().toISOString(),
+      createdBy: state.user.email
+    };
+    await plantsCol().doc(newId).set(plant);
+    state.plants.push(plant);
+
+    // Seed empty data collections for the new plant so it's ready to use
+    const batch = fbDb.batch();
+    const newOrgRef = fbDb.collection('orgs').doc(newId);
+    batch.set(newOrgRef.collection('data').doc('upstream'),      { rows: [] });
+    batch.set(newOrgRef.collection('data').doc('transport'),     { rows: [] });
+    batch.set(newOrgRef.collection('data').doc('manufacturing'), { rows: [] });
+    batch.set(newOrgRef.collection('data').doc('downstream'),    { rows: [] });
+    batch.set(newOrgRef.collection('data').doc('org'),           { ...DEFAULT_STATE.org, name });
+    batch.set(newOrgRef.collection('data').doc('product'),       { ...DEFAULT_STATE.product });
+    await batch.commit();
+
+    audit('PLANT_CREATE', `Created new plant: ${name}`);
+    toast(`Plant "${name}" created — switch to it using the topbar dropdown`);
+  }
+
+  updatePlantSwitcher();
+  closePlantDialog();
+  renderPage('plants');
+}
+async function togglePlantActive(id){
+  const p = state.plants.find(x => x.id === id);
+  if (!p) return;
+  if (id === 'main' && p.active){ toast('Cannot disable the default plant', 'err'); return; }
+  const updated = { ...p, active: !p.active };
+  await plantsCol().doc(id).set(updated);
+  const idx = state.plants.findIndex(x => x.id === id);
+  if (idx >= 0) state.plants[idx] = updated;
+  audit(updated.active ? 'PLANT_ENABLE' : 'PLANT_DISABLE', `${updated.active?'Enabled':'Disabled'} plant: ${p.name}`);
+  toast(`Plant "${p.name}" ${updated.active?'enabled':'disabled'}`);
+  updatePlantSwitcher();
+  renderPage('plants');
+}
+async function deletePlant(id){
+  if (id === 'main'){ toast('Cannot delete the default plant', 'err'); return; }
+  const p = state.plants.find(x => x.id === id);
+  if (!p) return;
+  if (id === CURRENT_PLANT_ID){ toast('Cannot delete the currently active plant. Switch to another plant first.', 'err'); return; }
+  if (!confirm(`Delete plant "${p.name}"?\n\nThis will permanently delete ALL emission data for this plant. This cannot be undone.`)) return;
+  if (!confirm(`Are you absolutely sure? All data for "${p.name}" will be lost.`)) return;
+
+  // Delete all data sub-collections
+  const orgDocRef = fbDb.collection('orgs').doc(id);
+  const cols = ['upstream','transport','manufacturing','downstream','org','product'];
+  const batch = fbDb.batch();
+  for (const col of cols){ batch.delete(orgDocRef.collection('data').doc(col)); }
+  await batch.commit();
+
+  // Delete plant doc
+  await plantsCol().doc(id).delete();
+  state.plants = state.plants.filter(x => x.id !== id);
+
+  audit('PLANT_DELETE', `Deleted plant: ${p.name}`);
+  toast(`Plant "${p.name}" deleted`);
+  updatePlantSwitcher();
+  renderPage('plants');
+}
+
 PAGES.users = () => {
   if (!canAdmin()){
     return `<div class="page-header"><div><div class="page-title">Access Denied</div>
@@ -3587,7 +3956,25 @@ async function bootFirebase(){
       saveUserDoc(profile).catch(()=>{});
 
       // Load all Firestore data into state
-      await Promise.all([ loadState(), loadUsers() ]);
+      await Promise.all([ loadState(), loadUsers(), loadPlants() ]);
+
+      // Seed default plant if none exist
+      await seedDefaultPlantIfEmpty();
+      await loadPlants();
+
+      // Restore last used plant or default to 'main'
+      let savedPlantId = 'main';
+      try {
+        const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if (s.currentPlantId) savedPlantId = s.currentPlantId;
+      } catch(e){}
+      const restoredPlant = state.plants.find(p => p.id === savedPlantId) || state.plants[0];
+      if (restoredPlant){
+        CURRENT_PLANT_ID = restoredPlant.id;
+        state.currentPlant = restoredPlant;
+        // Reload data for this plant (might differ from 'main')
+        if (restoredPlant.id !== 'main') await loadState();
+      }
 
       state.user = {
         id: profile.id, email: profile.email,
