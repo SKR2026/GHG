@@ -116,6 +116,36 @@
     --scope1-tint:rgba(208,75,24,0.10);
     --scope2-tint:rgba(16,143,170,0.10);
   }
+  /* Sky — airy light blue, fresh sky-blue/cyan/amber */
+  [data-theme="sky"]{
+    --bg-0:#eef5fb; --bg-1:#ffffff; --bg-2:#dceef8; --bg-3:#c8e3f4;
+    --line:#a8cceb; --line-2:#83b4d8;
+    --ink-0:#071829; --ink-1:#1e3d5c; --ink-2:#4a6e8a; --ink-3:#7a9db8;
+    --accent:#0070cc; --accent-ink:#ffffff;
+    --accent-2:#e07b00; --accent-2-ink:#ffffff;
+    --accent-3:#00a8d4;
+    --danger:#c9242b;
+    --scope-1:#e06030; --scope-2:#0070cc; --scope-3:#00a8d4;
+    --accent-tint:rgba(0,112,204,0.12);
+    --accent-tint-strong:rgba(0,112,204,0.22);
+    --scope1-tint:rgba(224,96,48,0.10);
+    --scope2-tint:rgba(0,112,204,0.12);
+  }
+  /* Sage — soft light green, fresh sage/emerald/amber */
+  [data-theme="sage"]{
+    --bg-0:#f2f8f4; --bg-1:#ffffff; --bg-2:#e3f0e8; --bg-3:#cfe4d7;
+    --line:#b0d2be; --line-2:#8cb8a0;
+    --ink-0:#0e2018; --ink-1:#284a38; --ink-2:#52786a; --ink-3:#82a896;
+    --accent:#0f9450; --accent-ink:#ffffff;
+    --accent-2:#cf7400; --accent-2-ink:#ffffff;
+    --accent-3:#0a96b8;
+    --danger:#c9242b;
+    --scope-1:#d06030; --scope-2:#0a96b8; --scope-3:#0f9450;
+    --accent-tint:rgba(15,148,80,0.12);
+    --accent-tint-strong:rgba(15,148,80,0.22);
+    --scope1-tint:rgba(208,96,48,0.10);
+    --scope2-tint:rgba(10,150,184,0.10);
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
@@ -815,6 +845,8 @@
         <div class="theme-opt" data-theme="aurora"   onclick="setTheme('aurora')"><span class="sw" style="background:linear-gradient(135deg,#c4a8ff,#ff8ec9,#4ee6cc)"></span>Aurora<span class="sw-tag">DARK</span></div>
         <div class="theme-opt" data-theme="solar"    onclick="setTheme('solar')"><span class="sw" style="background:linear-gradient(135deg,#0aa8c4,#e8780a)"></span>Solar<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="paper"    onclick="setTheme('paper')"><span class="sw" style="background:linear-gradient(135deg,#5b52e8,#c2640a)"></span>Paper<span class="sw-tag">LIGHT</span></div>
+        <div class="theme-opt" data-theme="sky"      onclick="setTheme('sky')"><span class="sw" style="background:linear-gradient(135deg,#0070cc,#00a8d4,#e07b00)"></span>Sky<span class="sw-tag">LIGHT</span></div>
+        <div class="theme-opt" data-theme="sage"     onclick="setTheme('sage')"><span class="sw" style="background:linear-gradient(135deg,#0f9450,#0a96b8,#cf7400)"></span>Sage<span class="sw-tag">LIGHT</span></div>
       </div>
     </div>
     <!-- License Expiry Badge — visible to admin only, populated by checkLicense() -->
@@ -1646,7 +1678,8 @@ function canAdmin(){
 =================================================================== */
 const THEME_NAMES = {
   midnight:'Midnight', carbon:'Carbon', forest:'Forest',
-  aurora:'Aurora',     solar:'Solar',   paper:'Paper'
+  aurora:'Aurora',     solar:'Solar',   paper:'Paper',
+  sky:'Sky',           sage:'Sage'
 };
 function applyTheme(name){
   if (!THEME_NAMES[name]) name = 'midnight';
