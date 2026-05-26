@@ -18,10 +18,10 @@
    ============================================================= */
 
 window.FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyD1Ey-yqHEqLB0NFOAfPND0N0TmwA4a6pE",
-  authDomain:        "skr-msa.firebaseapp.com",
-  projectId:         "skr-msa",
-  storageBucket:     "skr-msa.firebasestorage.app",
-  messagingSenderId: "957782831083",
-  appId:             "1:957782831083:web:487ee047499c6ed598b3ae"
+  apiKey:            "PASTE_YOUR_API_KEY_HERE",
+  authDomain:        "your-project-id.firebaseapp.com",
+  projectId:         "your-project-id",
+  storageBucket:     "your-project-id.appspot.com",
+  messagingSenderId: "000000000000",
+  appId:             "1:000000000000:web:000000000000000000000000"
 };
