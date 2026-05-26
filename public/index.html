@@ -3065,7 +3065,7 @@ PAGES.plants = () => {
     <div class="card-body tight">
       <table class="data">
         <thead><tr><th>Plant</th><th>Location</th><th>Status</th><th>Created</th><th style="text-align:right">Actions</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="5" class="empty">No plants yet</td></tr>'}</tbody>
+        <tbody id="plants-table-body">${rows || '<tr><td colspan="5" class="empty">No plants yet</td></tr>'}</tbody>
       </table>
     </div>
   </div>
@@ -3102,7 +3102,31 @@ PAGES.plants = () => {
 
 POST_RENDER.plants = async () => {
   await loadPlants();
-  renderPage('plants');
+  updatePlantSwitcher();
+  // Update table in place without re-rendering the whole page (avoids killing the modal)
+  const tbody = document.querySelector('#plants-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = state.plants.map(p => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:8px;background:${p.id === CURRENT_PLANT_ID ? 'linear-gradient(135deg,var(--accent),var(--accent-3))' : 'var(--bg-3)'};display:grid;place-items:center;font-size:16px">🏭</div>
+          <div>
+            <div style="font-weight:600">${escapeHtml(p.name)}${p.id === CURRENT_PLANT_ID ? ' <span style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:0.1em">ACTIVE</span>' : ''}</div>
+            <div style="font-size:11px;color:var(--ink-2);font-family:var(--mono)">${escapeHtml(p.id)}</div>
+          </div>
+        </div>
+      </td>
+      <td>${escapeHtml(p.location || '—')}</td>
+      <td><span class="tag" style="background:${p.active ? 'var(--accent-tint)' : 'rgba(220,38,38,0.10)'};color:${p.active ? 'var(--accent)' : 'var(--danger)'}">${p.active ? 'ACTIVE' : 'DISABLED'}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${new Date(p.createdAt).toLocaleDateString()}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm btn-primary" onclick="switchPlant('${p.id}');closePlantMenu()" title="Switch to this plant">⇄ Switch</button>
+        <button class="btn btn-sm" onclick="editPlantDialog('${p.id}')" title="Edit">✎</button>
+        <button class="btn btn-sm ${p.active ? 'btn-warn' : ''}" onclick="togglePlantActive('${p.id}')">${p.active ? '⏻ Disable' : '✓ Enable'}</button>
+        ${p.id !== 'main' ? `<button class="btn btn-sm btn-danger" onclick="deletePlant('${p.id}')" title="Delete">✕</button>` : ''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">No plants yet</td></tr>';
 };
 
 function newPlantDialog(){
@@ -3172,7 +3196,10 @@ async function savePlantDialog(){
 
   updatePlantSwitcher();
   closePlantDialog();
-  renderPage('plants');
+  // Refresh table in place — do NOT call renderPage which destroys the modal
+  if (document.getElementById('plants-table-body')){
+    POST_RENDER.plants();
+  }
 }
 async function togglePlantActive(id){
   const p = state.plants.find(x => x.id === id);
@@ -3185,7 +3212,7 @@ async function togglePlantActive(id){
   audit(updated.active ? 'PLANT_ENABLE' : 'PLANT_DISABLE', `${updated.active?'Enabled':'Disabled'} plant: ${p.name}`);
   toast(`Plant "${p.name}" ${updated.active?'enabled':'disabled'}`);
   updatePlantSwitcher();
-  renderPage('plants');
+  if (document.getElementById('plants-table-body')) POST_RENDER.plants();
 }
 async function deletePlant(id){
   if (id === 'main'){ toast('Cannot delete the default plant', 'err'); return; }
@@ -3209,7 +3236,7 @@ async function deletePlant(id){
   audit('PLANT_DELETE', `Deleted plant: ${p.name}`);
   toast(`Plant "${p.name}" deleted`);
   updatePlantSwitcher();
-  renderPage('plants');
+  if (document.getElementById('plants-table-body')) POST_RENDER.plants();
 }
 
 PAGES.users = () => {
@@ -3274,7 +3301,7 @@ PAGES.users = () => {
         <thead><tr>
           <th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th style="text-align:right">Actions</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="6" class="empty">No users yet</td></tr>'}</tbody>
+        <tbody id="users-table-body">${rows || '<tr><td colspan="6" class="empty">No users yet</td></tr>'}</tbody>
       </table>
     </div>
   </div>
@@ -3511,7 +3538,10 @@ async function saveUserDialog(){
   }
 
   closeUserDialog();
-  renderPage('users');
+  // Refresh table in place — do NOT call renderPage which destroys the modal
+  if (document.getElementById('users-table-body')){
+    POST_RENDER.users();
+  }
 }
 
 async function resetUserPassword(id){
@@ -3538,7 +3568,7 @@ async function toggleUserActive(id){
   if (idx >= 0) state.users[idx] = updated;
   audit(updated.active ? 'USER_ENABLE' : 'USER_DISABLE', `${updated.active?'Enabled':'Disabled'} ${u.email}`);
   toast(`"${u.email}" ${updated.active?'enabled':'disabled'}`);
-  renderPage('users');
+  if (document.getElementById('users-table-body')) POST_RENDER.users();
 }
 
 async function deleteUser(id){
@@ -3554,7 +3584,7 @@ async function deleteUser(id){
   state.users = state.users.filter(x => x.id !== id);
   audit('USER_DELETE', `Deleted profile for ${u.email}`);
   toast(`User "${u.email}" removed`);
-  renderPage('users');
+  if (document.getElementById('users-table-body')) POST_RENDER.users();
 }
 
 /* ===================================================================
