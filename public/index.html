@@ -738,7 +738,7 @@ const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyD1Ey-yqHEqLB0NFOAfPND0N0TmwA4a6pE",
   authDomain:        "skr-msa.firebaseapp.com",
   projectId:         "skr-msa",
-  storageBucket:     "skr-msa.firebasestorage.app",
+  storageBucket:     "kr-msa.firebasestorage.app",
   messagingSenderId: "957782831083",
   appId:             "1:957782831083:web:487ee047499c6ed598b3ae"
 };
@@ -2865,9 +2865,9 @@ PAGES.users = () => {
         Only administrators can manage users. Contact your platform administrator.
       </div></div>`;
   }
-  const sortedUsers = [...state.users].sort((a,b) => a.username.localeCompare(b.username));
+  const sortedUsers = [...state.users].sort((a,b) => (a.email||'').localeCompare(b.email||''));
   const activeCount = state.users.filter(u => u.active).length;
-  const adminCount = state.users.filter(u => u.role === 'admin' && u.active).length;
+  const adminCount  = state.users.filter(u => u.role === 'admin' && u.active).length;
   const rows = sortedUsers.map(u => {
     const isSelf = state.user && u.id === state.user.id;
     const last = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never';
@@ -2976,6 +2976,56 @@ PAGES.users = () => {
     </div>
   </div>
   `;
+};
+
+// Always reload users from Firestore when opening the page
+POST_RENDER.users = async () => {
+  await loadUsers();
+  // Re-render with fresh data
+  const container = document.getElementById('main-content');
+  if (!container) return;
+  // Only re-render the table part so the modal doesn't flicker
+  const sortedUsers = [...state.users].sort((a,b) => (a.email||'').localeCompare(b.email||''));
+  const activeCount = state.users.filter(u => u.active).length;
+  const adminCount  = state.users.filter(u => u.role === 'admin' && u.active).length;
+
+  // Update KPI values
+  const kpis = container.querySelectorAll('.kpi-value');
+  if (kpis[0]) kpis[0].textContent = state.users.length;
+  if (kpis[1]) kpis[1].textContent = activeCount;
+  if (kpis[2]) kpis[2].textContent = adminCount;
+  if (kpis[3]) kpis[3].textContent = state.users.length - activeCount;
+
+  // Update table
+  const tbody = container.querySelector('tbody');
+  if (!tbody) return;
+  if (sortedUsers.length === 0){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No users yet — click + New User to add someone</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sortedUsers.map(u => {
+    const isSelf = state.user && u.id === state.user.id;
+    const last   = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar-sm" style="background:${u.active?'linear-gradient(135deg,var(--accent),var(--accent-3))':'var(--bg-3)'}">${(u.displayName||u.email||'?').charAt(0).toUpperCase()}</div>
+        <div>
+          <div style="font-weight:600">${escapeHtml(u.email||'')}${isSelf?' <span style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:0.1em">YOU</span>':''}</div>
+          <div style="font-size:11px;color:var(--ink-2)">${escapeHtml(u.displayName||'—')}</div>
+        </div>
+      </div></td>
+      <td>${escapeHtml(u.email||'—')}</td>
+      <td><span class="tag" style="background:var(--accent-tint);color:var(--accent)">${ROLE_NAMES[u.role]||u.role}</span></td>
+      <td><span class="tag" style="background:${u.active?'var(--accent-tint)':'rgba(220,38,38,0.10)'};color:${u.active?'var(--accent)':'var(--danger)'}">${u.active?'ACTIVE':'DISABLED'}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${last}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm" onclick="editUserDialog('${u.id}')" title="Edit">✎</button>
+        <button class="btn btn-sm" onclick="resetUserPassword('${u.id}')" title="Send reset email">↻</button>
+        <button class="btn btn-sm ${u.active?'btn-warn':''}" onclick="toggleUserActive('${u.id}')" title="${u.active?'Disable':'Enable'}">${u.active?'⏻':'✓'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" ${isSelf?'disabled':''} title="Delete">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
 };
 
 function newUserDialog(){
