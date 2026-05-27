@@ -335,6 +335,128 @@
   #license-badge.lb-none   {background:rgba(90,100,118,0.15);color:var(--ink-2);border-color:var(--line)}
   @keyframes lb-pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 
+  /* ── NOTIFICATION BELL ── */
+  .notif-btn{
+    position:relative;
+    background:transparent;border:1px solid var(--line);
+    color:var(--ink-1);width:34px;height:34px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:16px;
+    transition:border-color .15s,color .15s;
+    border-radius:6px;flex-shrink:0;
+  }
+  .notif-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .notif-badge{
+    position:absolute;top:-5px;right:-5px;
+    min-width:16px;height:16px;padding:0 4px;
+    background:var(--danger);color:#fff;
+    border-radius:8px;font-size:9px;font-weight:700;
+    font-family:var(--mono);display:none;
+    align-items:center;justify-content:center;
+    line-height:1;
+  }
+  .notif-badge.show{display:flex}
+  .notif-panel{
+    display:none;position:absolute;top:calc(100% + 8px);right:0;
+    width:380px;background:var(--bg-1);border:1px solid var(--line);
+    border-radius:10px;z-index:200;
+    box-shadow:0 12px 40px rgba(0,0,0,0.5);
+    overflow:hidden;
+  }
+  .notif-panel.open{display:block}
+  .notif-panel-head{
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--bg-2);
+  }
+  .notif-panel-title{font-family:var(--display);font-size:13px;font-weight:600}
+  .notif-panel-actions{display:flex;gap:6px}
+  .notif-clear-btn{
+    background:transparent;border:none;color:var(--ink-2);
+    font-family:var(--mono);font-size:10px;cursor:pointer;padding:3px 6px;
+    letter-spacing:0.08em;
+  }
+  .notif-clear-btn:hover{color:var(--danger)}
+  .notif-list{max-height:380px;overflow-y:auto}
+  .notif-item{
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    display:flex;gap:10px;cursor:pointer;
+    transition:background .1s;
+  }
+  .notif-item:hover{background:var(--bg-2)}
+  .notif-item.unread{background:var(--accent-tint)}
+  .notif-item:last-child{border-bottom:none}
+  .notif-icon{
+    width:32px;height:32px;border-radius:8px;flex-shrink:0;
+    display:grid;place-items:center;font-size:14px;
+  }
+  .notif-icon.info{background:var(--accent-tint);color:var(--accent)}
+  .notif-icon.warn{background:rgba(255,200,71,0.16);color:var(--accent-2)}
+  .notif-icon.err{background:rgba(255,107,115,0.16);color:var(--danger)}
+  .notif-icon.mail{background:var(--scope2-tint);color:var(--scope-2)}
+  .notif-body{flex:1;min-width:0}
+  .notif-msg{font-size:12.5px;color:var(--ink-0);line-height:1.4;margin-bottom:3px}
+  .notif-time{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+  .notif-empty{padding:28px;text-align:center;color:var(--ink-3);font-size:13px}
+  .notif-footer{
+    padding:10px 16px;border-top:1px solid var(--line);
+    text-align:center;background:var(--bg-2);
+  }
+  .notif-footer button{
+    background:transparent;border:none;
+    color:var(--accent);font-family:var(--mono);font-size:11px;
+    cursor:pointer;letter-spacing:0.08em;
+  }
+  .notif-wrapper{position:relative}
+
+  /* ── OFFICE 365 MAIL SETTINGS ── */
+  .mail-status-dot{
+    display:inline-block;width:8px;height:8px;border-radius:50%;
+    margin-right:6px;vertical-align:middle;
+  }
+  .mail-status-dot.connected{background:var(--accent)}
+  .mail-status-dot.disconnected{background:var(--danger)}
+  .mail-status-dot.testing{background:var(--accent-2);animation:pulse 1s infinite}
+  .mail-config-section{
+    background:var(--bg-2);border:1px solid var(--line);
+    border-radius:8px;padding:18px;margin-bottom:14px;
+  }
+  .mail-config-title{
+    font-family:var(--mono);font-size:10px;letter-spacing:0.15em;
+    color:var(--ink-2);text-transform:uppercase;margin-bottom:14px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .mail-recipients-list{
+    display:flex;flex-direction:column;gap:6px;margin-top:10px;
+  }
+  .mail-recipient-row{
+    display:flex;align-items:center;gap:8px;
+  }
+  .mail-recipient-tag{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--accent-tint);color:var(--accent);
+    padding:4px 10px;border-radius:20px;font-size:11px;
+    font-family:var(--mono);
+  }
+  .mail-recipient-tag button{
+    background:none;border:none;color:inherit;cursor:pointer;
+    font-size:12px;padding:0;opacity:0.7;
+  }
+  .mail-recipient-tag button:hover{opacity:1}
+  .notif-trigger-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  }
+  .notif-trigger-item{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg-1);border:1px solid var(--line);
+    border-radius:6px;padding:10px 12px;font-size:12px;
+    cursor:pointer;transition:border-color .15s;
+  }
+  .notif-trigger-item:hover{border-color:var(--accent)}
+  .notif-trigger-item input[type=checkbox]{
+    width:15px;height:15px;accent-color:var(--accent);flex-shrink:0;
+  }
+
   /* Theme picker */
   .theme-picker{position:relative}
   .theme-btn{
@@ -888,6 +1010,30 @@
         <div class="theme-opt" data-theme="sage"     onclick="setTheme('sage')"><span class="sw" style="background:linear-gradient(135deg,#0f9450,#0a96b8,#cf7400)"></span>Sage<span class="sw-tag">LIGHT</span></div>
         <div class="theme-opt" data-theme="brightblue" onclick="setTheme('brightblue')"><span class="sw" style="background:linear-gradient(135deg,#1e90ff,#33d4ff,#ffb020)"></span>Bright Blue<span class="sw-tag">DARK</span></div>
         <div class="theme-opt" data-theme="cyan" onclick="setTheme('cyan')"><span class="sw" style="background:linear-gradient(135deg,#00baf7,#5ad8ff,#e07a00)"></span>Cyan<span class="sw-tag">LIGHT</span></div>
+      </div>
+    </div>
+    <!-- Notification Bell -->
+    <div class="notif-wrapper">
+      <button class="notif-btn" id="notif-btn" onclick="toggleNotifPanel(event)" title="Notifications">
+        🔔
+        <span class="notif-badge" id="notif-badge">0</span>
+      </button>
+      <div class="notif-panel" id="notif-panel">
+        <div class="notif-panel-head">
+          <span class="notif-panel-title">Notifications</span>
+          <div class="notif-panel-actions">
+            <button class="notif-clear-btn" onclick="markAllNotifRead()">MARK ALL READ</button>
+            <button class="notif-clear-btn" onclick="clearAllNotif()">CLEAR ALL</button>
+          </div>
+        </div>
+        <div class="notif-list" id="notif-list">
+          <div class="notif-empty">No notifications yet</div>
+        </div>
+        <div class="notif-footer">
+          <button onclick="renderPage('settings');closeNotifPanel();setTimeout(()=>{document.getElementById('mail-settings-section')?.scrollIntoView({behavior:'smooth'})},400)">
+            ⚙ Email Notification Settings
+          </button>
+        </div>
       </div>
     </div>
     <!-- License Expiry Badge — visible to admin only, populated by checkLicense() -->
@@ -1529,7 +1675,11 @@ function enterApp(){
   renderPage('dashboard');
   startClock();
   subscribeRealtime();
-  checkLicense(); // show license expiry badge for admin users
+  checkLicense();
+  // Override audit with mail-wired version
+  window.audit = auditWithMail;
+  // Welcome notification
+  addNotification(`Welcome, ${state.user.displayName || state.user.email} — signed in as ${state.user.roleName}`, 'ok');
 }
 
 /* ===================================================================
@@ -3444,6 +3594,121 @@ PAGES.settings = () => `
     </div>
   </div>
 
+  <!-- ── OFFICE 365 EMAIL / NOTIFICATION SETTINGS ── -->
+  <div class="card" id="mail-settings-section">
+    <div class="card-head">
+      <div>
+        <div class="card-title">📧 Office 365 Email Integration</div>
+        <div class="card-sub">MICROSOFT GRAPH API · NOTIFICATIONS · ALERTS</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="mail-status-dot ${state.mailConfig?.connected?'connected':'disconnected'}" id="mail-conn-dot"></span>
+        <span id="mail-conn-label" style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${state.mailConfig?.connected?'CONNECTED':'NOT CONNECTED'}</span>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- Azure App Credentials -->
+      <div class="mail-config-section">
+        <div class="mail-config-title">🔑 Azure App Registration Credentials</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>TENANT ID (Directory ID)</label>
+            <input type="text" id="mail-tenant-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              value="${escapeHtml(state.mailConfig?.tenantId||'')}" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>APPLICATION (CLIENT) ID</label>
+            <input type="text" id="mail-client-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              value="${escapeHtml(state.mailConfig?.clientId||'')}" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>CLIENT SECRET</label>
+            <input type="password" id="mail-client-secret" placeholder="Enter client secret value"
+              value="${escapeHtml(state.mailConfig?.clientSecret||'')}" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label>SENDER EMAIL (FROM ADDRESS)</label>
+            <input type="email" id="mail-sender" placeholder="ghg-alerts@yourcompany.com"
+              value="${escapeHtml(state.mailConfig?.senderEmail||'')}">
+          </div>
+        </div>
+        <div style="background:var(--bg-0);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:12px;font-size:11.5px;color:var(--ink-2);line-height:1.8">
+          <strong style="color:var(--accent)">Setup guide:</strong>
+          Go to <strong>Azure Portal → App registrations → New registration</strong> →
+          Under <strong>API permissions</strong> add <code style="color:var(--accent-2)">Mail.Send</code> (Application permission) →
+          Grant admin consent → Under <strong>Certificates &amp; secrets</strong> create a new client secret → paste values above.
+        </div>
+        <div class="form-foot" style="margin-top:14px">
+          <button class="btn" onclick="testMailConnection()" id="mail-test-btn">🔌 TEST CONNECTION</button>
+          <button class="btn btn-primary" onclick="saveMailConfig()">💾 SAVE CONFIGURATION</button>
+        </div>
+      </div>
+
+      <!-- Recipients -->
+      <div class="mail-config-section">
+        <div class="mail-config-title">👥 Notification Recipients</div>
+        <div class="form-grid" style="grid-template-columns:1fr auto">
+          <div class="field" style="margin:0">
+            <input type="email" id="mail-add-recipient" placeholder="Add recipient email address…">
+          </div>
+          <button class="btn btn-primary" style="align-self:end" onclick="addMailRecipient()">+ ADD</button>
+        </div>
+        <div class="mail-recipients-list" id="mail-recipients-list">
+          ${(state.mailConfig?.recipients||[]).map(r=>`
+            <span class="mail-recipient-tag">
+              ✉ ${escapeHtml(r)}
+              <button onclick="removeMailRecipient('${escapeHtml(r)}')">✕</button>
+            </span>`).join('') || '<span style="font-size:12px;color:var(--ink-3)">No recipients added yet</span>'}
+        </div>
+      </div>
+
+      <!-- Notification Triggers -->
+      <div class="mail-config-section">
+        <div class="mail-config-title">⚡ Notification Triggers</div>
+        <div class="notif-trigger-grid">
+          <label class="notif-trigger-item">
+            <input type="checkbox" id="trigger-login" ${state.mailConfig?.triggers?.login?'checked':''}
+              onchange="saveMailTriggers()">
+            <div><div style="font-size:12px;font-weight:600">User Login</div><div style="font-size:11px;color:var(--ink-2)">Alert on every sign-in</div></div>
+          </label>
+          <label class="notif-trigger-item">
+            <input type="checkbox" id="trigger-data-entry" ${state.mailConfig?.triggers?.dataEntry?'checked':''}
+              onchange="saveMailTriggers()">
+            <div><div style="font-size:12px;font-weight:600">Data Entry</div><div style="font-size:11px;color:var(--ink-2)">New emission records added</div></div>
+          </label>
+          <label class="notif-trigger-item">
+            <input type="checkbox" id="trigger-threshold" ${state.mailConfig?.triggers?.threshold?'checked':''}
+              onchange="saveMailTriggers()">
+            <div><div style="font-size:12px;font-weight:600">Threshold Breach</div><div style="font-size:11px;color:var(--ink-2)">CO₂e exceeds baseline</div></div>
+          </label>
+          <label class="notif-trigger-item">
+            <input type="checkbox" id="trigger-export" ${state.mailConfig?.triggers?.export?'checked':''}
+              onchange="saveMailTriggers()">
+            <div><div style="font-size:12px;font-weight:600">Report Export</div><div style="font-size:11px;color:var(--ink-2)">PDF/Excel generated</div></div>
+          </label>
+          <label class="notif-trigger-item">
+            <input type="checkbox" id="trigger-user-change" ${state.mailConfig?.triggers?.userChange?'checked':''}
+              onchange="saveMailTriggers()">
+            <div><div style="font-size:12px;font-weight:600">User Changes</div><div style="font-size:11px;color:var(--ink-2)">User created/deleted/disabled</div></div>
+          </label>
+          <label class="notif-trigger-item">
+            <input type="checkbox" id="trigger-weekly" ${state.mailConfig?.triggers?.weekly?'checked':''}
+              onchange="saveMailTriggers()">
+            <div><div style="font-size:12px;font-weight:600">Weekly Summary</div><div style="font-size:11px;color:var(--ink-2)">Weekly emissions digest</div></div>
+          </label>
+        </div>
+        <!-- Threshold value -->
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--ink-2)">THRESHOLD ALERT LEVEL (kg CO₂e)</label>
+          <input type="number" id="mail-threshold" style="width:160px;padding:7px 10px;background:var(--bg-0);border:1px solid var(--line);color:var(--ink-0);font-size:13px;border-radius:4px"
+            value="${state.mailConfig?.thresholdKg||10000}" placeholder="e.g. 10000" onchange="saveMailTriggers()">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   ${canAdmin()?`
   <div class="card">
     <div class="card-head"><div class="card-title">Data Management</div></div>
@@ -4502,6 +4767,329 @@ function exportMonthly(){
 }
 
 /* ===================================================================
+   NOTIFICATION SYSTEM
+=================================================================== */
+const NOTIF_KEY = 'carbonops_notifs';
+let notifications = [];
+
+function loadNotifications(){
+  try { notifications = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch(e){ notifications = []; }
+  renderNotifBadge();
+}
+function saveNotifications(){
+  try { localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications.slice(0,100))); } catch(e){}
+}
+function addNotification(msg, type='info', sendEmail=false, emailSubject=''){
+  const n = { id: uid(), msg, type, time: new Date().toISOString(), read: false };
+  notifications.unshift(n);
+  if (notifications.length > 100) notifications = notifications.slice(0,100);
+  saveNotifications();
+  renderNotifBadge();
+  renderNotifList();
+  if (sendEmail && emailSubject){
+    sendMailNotification(emailSubject, msg).catch(()=>{});
+  }
+}
+function renderNotifBadge(){
+  const unread = notifications.filter(n => !n.read).length;
+  const badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  badge.textContent = unread > 99 ? '99+' : unread;
+  badge.classList.toggle('show', unread > 0);
+}
+function renderNotifList(){
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!notifications.length){
+    list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+    return;
+  }
+  const iconMap = { info:'ℹ️', warn:'⚠️', err:'❌', mail:'📧', ok:'✅' };
+  list.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}" onclick="markNotifRead('${n.id}')">
+      <div class="notif-icon ${n.type}">${iconMap[n.type]||'🔔'}</div>
+      <div class="notif-body">
+        <div class="notif-msg">${escapeHtml(n.msg)}</div>
+        <div class="notif-time">${new Date(n.time).toLocaleString()}</div>
+      </div>
+    </div>`).join('');
+}
+function markNotifRead(id){
+  const n = notifications.find(x => x.id === id);
+  if (n) n.read = true;
+  saveNotifications();
+  renderNotifBadge();
+  renderNotifList();
+}
+function markAllNotifRead(){
+  notifications.forEach(n => n.read = true);
+  saveNotifications();
+  renderNotifBadge();
+  renderNotifList();
+}
+function clearAllNotif(){
+  notifications = [];
+  saveNotifications();
+  renderNotifBadge();
+  renderNotifList();
+}
+function toggleNotifPanel(e){
+  e.stopPropagation();
+  const panel = document.getElementById('notif-panel');
+  const isOpen = panel.classList.contains('open');
+  // Close other menus
+  document.getElementById('theme-menu').classList.remove('open');
+  document.getElementById('plant-switcher-list-wrap').classList.remove('open');
+  panel.classList.toggle('open', !isOpen);
+  if (!isOpen) renderNotifList();
+}
+function closeNotifPanel(){
+  document.getElementById('notif-panel')?.classList.remove('open');
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notif-panel');
+  if (panel && panel.classList.contains('open') && !e.target.closest('.notif-wrapper')){
+    panel.classList.remove('open');
+  }
+});
+
+/* ===================================================================
+   OFFICE 365 / MICROSOFT GRAPH EMAIL
+=================================================================== */
+// Mail config stored in state and localStorage
+const MAIL_CONFIG_KEY = 'carbonops_mail_config';
+
+function loadMailConfig(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(MAIL_CONFIG_KEY) || '{}');
+    state.mailConfig = saved;
+  } catch(e){ state.mailConfig = {}; }
+}
+function persistMailConfig(){
+  try { localStorage.setItem(MAIL_CONFIG_KEY, JSON.stringify(state.mailConfig||{})); } catch(e){}
+}
+
+async function getO365AccessToken(){
+  const cfg = state.mailConfig;
+  if (!cfg?.tenantId || !cfg?.clientId || !cfg?.clientSecret){
+    throw new Error('Office 365 credentials not configured. Go to Settings → Office 365 Email Integration.');
+  }
+  const tokenUrl = `https://login.microsoftonline.com/${cfg.tenantId}/oauth2/v2.0/token`;
+  const body = new URLSearchParams({
+    grant_type:    'client_credentials',
+    client_id:     cfg.clientId,
+    client_secret: cfg.clientSecret,
+    scope:         'https://graph.microsoft.com/.default'
+  });
+  const resp = await fetch(tokenUrl, { method:'POST', body });
+  if (!resp.ok){
+    const err = await resp.json().catch(()=>({}));
+    throw new Error(`Token error: ${err.error_description || err.error || resp.status}`);
+  }
+  const data = await resp.json();
+  return data.access_token;
+}
+
+async function sendMailNotification(subject, bodyText, toOverride=null){
+  const cfg = state.mailConfig;
+  if (!cfg?.tenantId || !cfg?.clientId || !cfg?.clientSecret || !cfg?.senderEmail) return;
+  const recipients = toOverride ? [toOverride] : (cfg.recipients || []);
+  if (!recipients.length) return;
+
+  try {
+    const token = await getO365AccessToken();
+    const message = {
+      subject,
+      body: {
+        contentType: 'HTML',
+        content: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0e1420;color:#f5f9ff;padding:28px;border-radius:8px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;border-bottom:1px solid #33425a;padding-bottom:16px">
+              <div style="background:linear-gradient(135deg,#22e3b1,#6ec1ff);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-weight:700;color:#062018;font-size:16px">C</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;letter-spacing:-0.02em">CARBONOPS</div>
+                <div style="font-size:10px;letter-spacing:0.2em;color:#8593a8">GHG EMISSION CALCULATOR</div>
+              </div>
+            </div>
+            <h2 style="color:#22e3b1;font-size:18px;margin-bottom:14px">${subject}</h2>
+            <p style="line-height:1.7;color:#c4cfde;font-size:14px">${bodyText.replace(/\n/g,'<br>')}</p>
+            <div style="margin-top:24px;padding-top:16px;border-top:1px solid #33425a;font-size:11px;color:#5a6779">
+              Sent by CarbonOps GHG Platform · ${new Date().toLocaleString()} ·
+              Organisation: ${escapeHtml(state.org?.name||'—')}
+            </div>
+          </div>`
+      },
+      toRecipients: recipients.map(email => ({ emailAddress: { address: email } })),
+      from: { emailAddress: { address: cfg.senderEmail } }
+    };
+    const sendUrl = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(cfg.senderEmail)}/sendMail`;
+    const resp = await fetch(sendUrl, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, saveToSentItems: true })
+    });
+    if (resp.status === 202 || resp.ok){
+      addNotification(`📧 Email sent: "${subject}" → ${recipients.join(', ')}`, 'mail');
+      return true;
+    } else {
+      const errData = await resp.json().catch(()=>({}));
+      throw new Error(errData?.error?.message || `HTTP ${resp.status}`);
+    }
+  } catch(e){
+    console.error('sendMail:', e);
+    addNotification(`❌ Email failed: ${e.message}`, 'err');
+    throw e;
+  }
+}
+
+async function testMailConnection(){
+  const cfg = {
+    tenantId:     document.getElementById('mail-tenant-id')?.value?.trim(),
+    clientId:     document.getElementById('mail-client-id')?.value?.trim(),
+    clientSecret: document.getElementById('mail-client-secret')?.value?.trim(),
+    senderEmail:  document.getElementById('mail-sender')?.value?.trim()
+  };
+  if (!cfg.tenantId || !cfg.clientId || !cfg.clientSecret){
+    toast('Fill in Tenant ID, Client ID, and Client Secret first', 'err'); return;
+  }
+  const btn = document.getElementById('mail-test-btn');
+  btn.textContent = '⏳ TESTING…'; btn.disabled = true;
+  const dot = document.getElementById('mail-conn-dot');
+  const lbl = document.getElementById('mail-conn-label');
+  if (dot) dot.className = 'mail-status-dot testing';
+  // Temporarily set config for test
+  const prev = state.mailConfig;
+  state.mailConfig = { ...prev, ...cfg };
+  try {
+    const token = await getO365AccessToken();
+    if (token){
+      state.mailConfig.connected = true;
+      persistMailConfig();
+      if (dot) dot.className = 'mail-status-dot connected';
+      if (lbl) lbl.textContent = 'CONNECTED';
+      btn.textContent = '✓ CONNECTION OK';
+      toast('✅ Office 365 connected successfully!');
+      addNotification('Office 365 connection verified successfully', 'ok');
+      // Send a test email if senderEmail + recipients available
+      if (cfg.senderEmail && (state.mailConfig.recipients||[]).length){
+        await sendMailNotification(
+          'CarbonOps — Connection Test',
+          `Your Office 365 integration with CarbonOps is working correctly.\n\nOrganisation: ${state.org?.name||'—'}\nConfigured by: ${state.user?.email||'—'}`
+        );
+      }
+    }
+  } catch(e){
+    state.mailConfig = prev;
+    if (dot) dot.className = 'mail-status-dot disconnected';
+    if (lbl) lbl.textContent = 'NOT CONNECTED';
+    btn.textContent = '🔌 TEST CONNECTION';
+    toast('Connection failed: ' + e.message, 'err');
+    addNotification(`Office 365 connection failed: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    setTimeout(()=>{ btn.textContent = '🔌 TEST CONNECTION'; }, 3000);
+  }
+}
+
+function saveMailConfig(){
+  const cfg = {
+    tenantId:     document.getElementById('mail-tenant-id')?.value?.trim(),
+    clientId:     document.getElementById('mail-client-id')?.value?.trim(),
+    clientSecret: document.getElementById('mail-client-secret')?.value?.trim(),
+    senderEmail:  document.getElementById('mail-sender')?.value?.trim(),
+    recipients:   state.mailConfig?.recipients || [],
+    triggers:     state.mailConfig?.triggers   || {},
+    thresholdKg:  parseFloat(document.getElementById('mail-threshold')?.value) || 10000,
+    connected:    state.mailConfig?.connected  || false
+  };
+  state.mailConfig = cfg;
+  persistMailConfig();
+  toast('Mail configuration saved');
+  addNotification('Office 365 email configuration updated', 'ok');
+  audit('MAIL_CONFIG_SAVE', 'Email notification settings updated');
+}
+
+function saveMailTriggers(){
+  if (!state.mailConfig) state.mailConfig = {};
+  state.mailConfig.triggers = {
+    login:      document.getElementById('trigger-login')?.checked || false,
+    dataEntry:  document.getElementById('trigger-data-entry')?.checked || false,
+    threshold:  document.getElementById('trigger-threshold')?.checked || false,
+    export:     document.getElementById('trigger-export')?.checked || false,
+    userChange: document.getElementById('trigger-user-change')?.checked || false,
+    weekly:     document.getElementById('trigger-weekly')?.checked || false
+  };
+  state.mailConfig.thresholdKg = parseFloat(document.getElementById('mail-threshold')?.value) || 10000;
+  persistMailConfig();
+}
+
+function addMailRecipient(){
+  const input = document.getElementById('mail-add-recipient');
+  const email = input?.value?.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast('Enter a valid email address', 'err'); return;
+  }
+  if (!state.mailConfig) state.mailConfig = {};
+  if (!state.mailConfig.recipients) state.mailConfig.recipients = [];
+  if (state.mailConfig.recipients.includes(email)){
+    toast('Already added', 'warn'); return;
+  }
+  state.mailConfig.recipients.push(email);
+  persistMailConfig();
+  input.value = '';
+  // Refresh recipient list in-place
+  const list = document.getElementById('mail-recipients-list');
+  if (list) list.innerHTML = state.mailConfig.recipients.map(r=>`
+    <span class="mail-recipient-tag">
+      ✉ ${escapeHtml(r)}
+      <button onclick="removeMailRecipient('${escapeHtml(r)}')">✕</button>
+    </span>`).join('');
+  toast(`Added ${email}`);
+}
+
+function removeMailRecipient(email){
+  if (!state.mailConfig?.recipients) return;
+  state.mailConfig.recipients = state.mailConfig.recipients.filter(r => r !== email);
+  persistMailConfig();
+  const list = document.getElementById('mail-recipients-list');
+  if (list) list.innerHTML = state.mailConfig.recipients.length
+    ? state.mailConfig.recipients.map(r=>`
+        <span class="mail-recipient-tag">
+          ✉ ${escapeHtml(r)}
+          <button onclick="removeMailRecipient('${escapeHtml(r)}')">✕</button>
+        </span>`).join('')
+    : '<span style="font-size:12px;color:var(--ink-3)">No recipients added yet</span>';
+}
+
+/* Hook mail triggers into existing actions */
+const _origAudit = audit;
+function auditWithMail(action, details){
+  _origAudit(action, details);
+  const cfg = state.mailConfig;
+  if (!cfg?.connected) return;
+  const t = cfg.triggers || {};
+  if (t.login && (action === 'LOGIN')){
+    addNotification(`Login: ${details}`, 'info', true, `CarbonOps — User Login: ${details}`);
+  }
+  if (t.userChange && (action === 'USER_CREATE' || action === 'USER_DELETE' || action === 'USER_DISABLE' || action === 'USER_ENABLE')){
+    addNotification(`User change: ${action} — ${details}`, 'warn', true, `CarbonOps — User Account Change: ${action}`);
+  }
+  if (t.export && (action === 'EXPORT_PDF' || action === 'EXPORT_MONTHLY')){
+    addNotification(`Report exported: ${details}`, 'mail', true, `CarbonOps — Report Generated: ${details}`);
+  }
+  if (t.dataEntry && (action === 'ADD_UPSTREAM' || action === 'ADD_TRANSPORT' || action === 'ADD_MFG' || action === 'ADD_DOWNSTREAM')){
+    // Check threshold
+    const totals = getTotals();
+    if (t.threshold && totals.total > (cfg.thresholdKg || 10000)){
+      addNotification(`⚠ CO₂e threshold exceeded: ${fmtCO2(totals.total)} kg`, 'warn', true,
+        `CarbonOps — Threshold Alert: ${fmtCO2(totals.total)} kg CO₂e exceeds limit of ${fmtCO2(cfg.thresholdKg)} kg`);
+    } else {
+      addNotification(`Data entry: ${details}`, 'info');
+    }
+  }
+}
+
+/* ===================================================================
    BOOT — Firebase-first
 =================================================================== */
 async function bootFirebase(){
@@ -4588,6 +5176,8 @@ async function bootFirebase(){
 =================================================================== */
 window.addEventListener('load', async () => {
   applyTheme(state.theme || 'midnight');
+  loadMailConfig();
+  loadNotifications();
 
   // Guard: show helpful screen if admin forgot to fill in FIREBASE_CONFIG
   if (!FB_IS_CONFIGURED){
